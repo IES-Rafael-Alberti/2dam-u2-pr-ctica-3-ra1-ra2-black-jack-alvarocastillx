@@ -5,6 +5,7 @@ class Jugador() {
     /**
      * Companion objects de métodos y variables de la baraja
      */
+        val mano = mutableListOf<Carta>()
         val listaDeResources = mutableListOf(
             R.drawable.as1,
             R.drawable.as2,
@@ -91,7 +92,7 @@ class Jugador() {
                     }
                     //sino, el valor es el mismo.
                     else {
-                        listaCartas.add(Carta(i,j,i.ordinal,i.ordinal, listaDeResources[contFotos]))
+                        listaCartas.add(Carta(i,j,i.ordinal+1,i.ordinal+1, listaDeResources[contFotos]))
                         contFotos++
                     }
                 }
