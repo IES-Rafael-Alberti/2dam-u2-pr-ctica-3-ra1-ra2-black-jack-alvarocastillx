@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.acasloa946.blackjack.routes.Routes
+import com.acasloa946.blackjack.screens.Pantalla1vs1
 import com.acasloa946.blackjack.screens.PantallaModo
 import com.acasloa946.blackjack.ui.theme.BlackJackTheme
 
@@ -30,6 +31,7 @@ class MainActivity : ComponentActivity() {
                     val NavController = rememberNavController()
                     NavHost(NavController, startDestination = Routes.Pantallamodo.route) {
                         composable(Routes.Pantallamodo.route) { PantallaModo(NavController) }
+                        composable(Routes.Pantalla1vs1.route) { Pantalla1vs1(NavController) }
                 }
                 }
             }

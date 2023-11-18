@@ -1,7 +1,6 @@
 package com.acasloa946.blackjack.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,7 +42,7 @@ fun PantallaModo(NavController: NavController) {
         TextoTitulo()
         Button(
             shape = RectangleShape,
-            onClick = { /*TODO*/ },
+            onClick = { NavController.navigate(Routes.Pantalla1vs1.route) },
             modifier = Modifier
                 .size(height = 150.dp, width = 150.dp)
                 .padding(bottom = 30.dp),
