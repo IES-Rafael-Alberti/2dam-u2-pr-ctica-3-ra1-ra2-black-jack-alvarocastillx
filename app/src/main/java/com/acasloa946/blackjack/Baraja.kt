@@ -71,7 +71,6 @@ class Jugador() {
          */
         fun crearBaraja() {
             var contFotos = 4
-
             for (i in Naipes.values()) {
                 for (j in Palos.values()) {
                     //controlo si son ASES para añadirlos con sus puntuacions (1 y 11)
@@ -89,6 +88,10 @@ class Jugador() {
                             listaCartas.add(Carta(i,j,1,11,listaDeResources[4]))
 
                         }
+                    }
+                    else if(i == Naipes.ROI || i == Naipes.VALET || i == Naipes.DAMA) {
+                        listaCartas.add(Carta(i,j,10,10,listaDeResources[contFotos]))
+                        contFotos++
                     }
                     //sino, el valor es el mismo.
                     else {
