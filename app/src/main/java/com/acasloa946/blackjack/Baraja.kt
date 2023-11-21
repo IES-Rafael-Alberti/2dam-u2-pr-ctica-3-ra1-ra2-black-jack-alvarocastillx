@@ -6,6 +6,7 @@ class Baraja() {
      * Companion objects de métodos y variables de la baraja
      */
 
+    companion object {
         val listaDeResources = mutableListOf(
             R.drawable.as1,
             R.drawable.as2,
@@ -60,8 +61,9 @@ class Baraja() {
             R.drawable.c39,
             R.drawable.c52,
         )
+
         //variables necesarias
-        lateinit var Carta : Carta
+        lateinit var Carta: Carta
         var listaCartas = arrayListOf<Carta>()
 
         var ultimaCarta = false
@@ -76,26 +78,33 @@ class Baraja() {
                     //controlo si son ASES para añadirlos con sus puntuacions (1 y 11)
                     if (i == Naipes.AS) {
                         if (j == Palos.CORAZONES) {
-                            listaCartas.add(Carta(i,j,1,11,listaDeResources[0]))
+                            listaCartas.add(Carta(i, j, 1, 11, listaDeResources[0]))
                         }
                         if (j == Palos.DIAMANTES) {
-                            listaCartas.add(Carta(i,j,1,11,listaDeResources[1]))
+                            listaCartas.add(Carta(i, j, 1, 11, listaDeResources[1]))
                         }
                         if (j == Palos.TREBOLES) {
-                            listaCartas.add(Carta(i,j,1,11,listaDeResources[3]))
+                            listaCartas.add(Carta(i, j, 1, 11, listaDeResources[3]))
                         }
                         if (j == Palos.PICAS) {
-                            listaCartas.add(Carta(i,j,1,11,listaDeResources[4]))
+                            listaCartas.add(Carta(i, j, 1, 11, listaDeResources[4]))
 
                         }
-                    }
-                    else if(i == Naipes.ROI || i == Naipes.VALET || i == Naipes.DAMA) {
-                        listaCartas.add(Carta(i,j,10,10,listaDeResources[contFotos]))
+                    } else if (i == Naipes.ROI || i == Naipes.VALET || i == Naipes.DAMA) {
+                        listaCartas.add(Carta(i, j, 10, 10, listaDeResources[contFotos]))
                         contFotos++
                     }
                     //sino, el valor es el mismo.
                     else {
-                        listaCartas.add(Carta(i,j,i.ordinal+1,i.ordinal+1, listaDeResources[contFotos]))
+                        listaCartas.add(
+                            Carta(
+                                i,
+                                j,
+                                i.ordinal + 1,
+                                i.ordinal + 1,
+                                listaDeResources[contFotos]
+                            )
+                        )
                         contFotos++
                     }
                 }
@@ -114,11 +123,11 @@ class Baraja() {
          * Función que devuelve la última carta de la baraja y la borra.
          * @return Carta -> Carta devuelta
          */
-        fun dameCarta():Carta {
-            if (listaCartas.isNotEmpty()){
+        fun dameCarta(): Carta {
+            if (listaCartas.isNotEmpty()) {
                 listaCartas.remove(listaCartas.last())
                 Carta = listaCartas.last()
-                if (listaCartas.size==1) {
+                if (listaCartas.size == 1) {
                     ultimaCarta = true
                 }
                 return Carta
@@ -134,3 +143,4 @@ class Baraja() {
             listaCartas.clear()
         }
     }
+}
