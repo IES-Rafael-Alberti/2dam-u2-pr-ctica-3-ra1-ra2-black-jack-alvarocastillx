@@ -32,22 +32,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.acasloa946.blackjack.Carta
+import com.acasloa946.blackjack.Baraja
 import com.acasloa946.blackjack.Jugador
 import com.acasloa946.blackjack.R
 
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun Pantalla1vs1(NavController: NavController) {
-    var jugador1Jugando by rememberSaveable { mutableStateOf(true) }
-    var jugador2Jugando by rememberSaveable { mutableStateOf(true) }
+    var jugador1haSacado by rememberSaveable { mutableStateOf(false) }
+    var jugador2haSacado by rememberSaveable { mutableStateOf(false) }
 
-    val barajaJugador1 = Jugador()
-    var manoJugador1 by remember { mutableStateOf(barajaJugador1.mano) }
+    var boton1Estado by rememberSaveable { mutableStateOf(true) }
+    var boton2Estado by rememberSaveable { mutableStateOf(true) }
+
+    val baraja = Baraja()
+
+    val jugador1 = Jugador()
+    var manoJugador1 by remember { mutableStateOf(jugador1.Mano) }
     var valorJugador1 by rememberSaveable { mutableStateOf(0) }
 
-    val barajaJugador2 = Jugador()
-    var manoJugador2 by remember { mutableStateOf(barajaJugador2.mano) }
+    val jugador2 = Jugador()
+    var manoJugador2 by remember { mutableStateOf(jugador2.Mano) }
     var valorJugador2 by rememberSaveable { mutableStateOf(0) }
 
 
@@ -65,35 +70,37 @@ fun Pantalla1vs1(NavController: NavController) {
         TextoJugador(number = 1)
         RowBotonesJugador1(
             onClickPedir = {
-                if (barajaJugador1.listaCartas.isEmpty()) {
-                    barajaJugador1.crearBaraja()
-                    barajaJugador1.barajar()
-                    val ultimaCarta = barajaJugador1.dameCarta()
+                if (baraja.listaCartas.isEmpty()) {
+                    baraja.crearBaraja()
+                    baraja.barajar()
+                    val ultimaCarta = baraja.dameCarta()
                     valorJugador1 += ultimaCarta.PuntosMax
                     manoJugador1 = manoJugador1.toMutableList().apply { add(ultimaCarta) }
                 } else {
-                    val ultimaCarta = barajaJugador1.dameCarta()
+                    val ultimaCarta = baraja.dameCarta()
                     manoJugador1 = manoJugador1.toMutableList().apply { add(ultimaCarta) }
                 }
+                //Control de turno
+                jugador1haSacado = true
                 controlarTurno(
-                    jugador1Jugando = {
-                        jugador1Jugando = !jugador1Jugando
+                    cambiarBoton1Estado = {
+                        boton1Estado = false
                     },
-                    jugador2Jugando = {
-                        jugador2Jugando = !jugador2Jugando
+                    cambiarBoton2Estado = {
+                        boton2Estado=false
                     },
-                    reiniciar = {
-                        jugador1Jugando = true
-                        jugador2Jugando = true
-                    },
-                    manoJugador1,
-                    manoJugador2,
-                    valorJugador1,
-                    valorJugador2
-
-
+                    jugador1haSacado,
+                    jugador2haSacado,
+                    reiniciarBotones = {
+                        boton1Estado = true
+                        boton2Estado = true
+                    }
                 )
-            }, jugador1Jugando = jugador1Jugando
+
+            }, boton1Estado = boton1Estado,
+            onClickPasar = {
+
+            }
         )
         //
         LazyRow() {
@@ -110,7 +117,7 @@ fun Pantalla1vs1(NavController: NavController) {
         }
         TextoValor(valorJugador1, cambiarEstadoJugador = {
             if (valorJugador1 >= 21) {
-                jugador1Jugando = false
+                boton1Estado = false
             }
         })
 
@@ -120,34 +127,37 @@ fun Pantalla1vs1(NavController: NavController) {
         TextoJugador(number = 2)
         RowBotonesJugador2(
             onClickPedir = {
-                if (barajaJugador2.listaCartas.isEmpty()) {
-                    barajaJugador2.crearBaraja()
-                    barajaJugador2.barajar()
-                    val ultimaCarta = barajaJugador2.dameCarta()
+                if (baraja.listaCartas.isEmpty()) {
+                    baraja.crearBaraja()
+                    baraja.barajar()
+                    val ultimaCarta = baraja.dameCarta()
                     valorJugador2 += ultimaCarta.PuntosMax
                     manoJugador2 = manoJugador2.toMutableList().apply { add(ultimaCarta) }
                 } else {
-                    val ultimaCarta = barajaJugador2.dameCarta()
+                    val ultimaCarta = baraja.dameCarta()
                     manoJugador2 = manoJugador2.toMutableList().apply { add(ultimaCarta) }
                 }
+                jugador2haSacado = true
                 controlarTurno(
-                    jugador1Jugando = {
-                        jugador1Jugando = !jugador1Jugando
+                    cambiarBoton1Estado = {
+                        boton1Estado = false
                     },
-                    jugador2Jugando = {
-                        jugador2Jugando = !jugador2Jugando
+                    cambiarBoton2Estado = {
+                        boton2Estado = false
                     },
-                    reiniciar = {
-                        jugador1Jugando = true
-                        jugador2Jugando = true
-                    },
-                    manoJugador1,
-                    manoJugador2,
-                    valorJugador1,
-                    valorJugador2
+                    jugador1haSacado,
+                    jugador2haSacado,
+                    reiniciarBotones = {
+                        boton1Estado = true
+                        boton2Estado = true
+                    }
                 )
+
             },
-            jugador2Jugando = jugador2Jugando
+            boton2Estado = boton2Estado,
+            onClickPasar = {
+
+            }
         )
         LazyRow() {
             items(manoJugador2) { carta ->
@@ -163,7 +173,7 @@ fun Pantalla1vs1(NavController: NavController) {
         }
         TextoValor(valorJugador2, cambiarEstadoJugador = {
             if (valorJugador2 >= 21) {
-                jugador2Jugando = false
+                jugador2haSacado = false
             }
         })
     }
@@ -192,16 +202,16 @@ fun TextoJugador(number: Int) {
 
 @Composable
 fun RowBotonesJugador1(
-    onClickPedir: () -> Unit, jugador1Jugando: Boolean
+    onClickPedir: () -> Unit, boton1Estado: Boolean,
+    onClickPasar: () -> Unit,
 ) {
-
     Row(
         Modifier.padding(bottom = 10.dp)
     ) {
         Button(
             shape = RectangleShape, onClick = {
                 onClickPedir()
-            }, colors = ButtonDefaults.buttonColors(Color.Red), enabled = jugador1Jugando
+            }, colors = ButtonDefaults.buttonColors(Color.Red), enabled = boton1Estado
         ) {
             Text(
                 text = "Pedir", textAlign = TextAlign.Center, color = Color.Black
@@ -211,9 +221,9 @@ fun RowBotonesJugador1(
         Spacer(modifier = Modifier.padding(10.dp))
         Button(
             shape = RectangleShape,
-            onClick = { /*TODO*/ },
+            onClick = { onClickPasar() },
             colors = ButtonDefaults.buttonColors(Color.Red),
-            enabled = jugador1Jugando
+            enabled = boton1Estado
         ) {
             Text(
                 text = "Pasar", textAlign = TextAlign.Center, color = Color.Black
@@ -224,7 +234,8 @@ fun RowBotonesJugador1(
 
 @Composable
 fun RowBotonesJugador2(
-    onClickPedir: () -> Unit, jugador2Jugando: Boolean
+    onClickPedir: () -> Unit, boton2Estado: Boolean,
+    onClickPasar: () -> Unit
 ) {
 
     Row(
@@ -233,7 +244,7 @@ fun RowBotonesJugador2(
         Button(
             shape = RectangleShape, onClick = {
                 onClickPedir()
-            }, colors = ButtonDefaults.buttonColors(Color.Red), enabled = jugador2Jugando
+            }, colors = ButtonDefaults.buttonColors(Color.Red), enabled = boton2Estado
         ) {
             Text(
                 text = "Pedir", textAlign = TextAlign.Center, color = Color.Black
@@ -243,9 +254,9 @@ fun RowBotonesJugador2(
         Spacer(modifier = Modifier.padding(10.dp))
         Button(
             shape = RectangleShape,
-            onClick = { /*TODO*/ },
+            onClick = { onClickPasar() },
             colors = ButtonDefaults.buttonColors(Color.Red),
-            enabled = jugador2Jugando
+            enabled = boton2Estado
         ) {
             Text(
                 text = "Pasar", textAlign = TextAlign.Center, color = Color.Black
@@ -270,20 +281,23 @@ fun TextoValor(
 }
 
 fun controlarTurno(
-    jugador1Jugando: () -> Unit,
-    jugador2Jugando: () -> Unit,
-    reiniciar: () -> Unit,
-    manoJugador1: MutableList<Carta>,
-    manoJugador2: MutableList<Carta>,
-    valorJugador1 :Int,
-    valorJugador2 : Int
+    cambiarBoton1Estado: () -> Unit,
+    cambiarBoton2Estado: () -> Unit,
+    jugador1haSacado: Boolean,
+    jugador2haSacado: Boolean,
+    reiniciarBotones : () -> Unit
+
 ) {
-    if ((manoJugador1.size > manoJugador2.size) && (valorJugador1<=21 && valorJugador2<=21)) {
-        jugador1Jugando()
-    } else if (manoJugador2.size > manoJugador1.size && (valorJugador1<=21 && valorJugador2<=21)) {
-        jugador2Jugando()
-    } else if (manoJugador2.size == manoJugador1.size && (valorJugador1<=21 && valorJugador2<=21)) {
-        reiniciar()
+
+    if (jugador1haSacado && !jugador2haSacado) {
+        cambiarBoton1Estado()
     }
+    if (jugador2haSacado && !jugador1haSacado) {
+        cambiarBoton2Estado()
+    }
+    if (jugador1haSacado && jugador2haSacado) {
+        reiniciarBotones()
+    }
+
 }
 

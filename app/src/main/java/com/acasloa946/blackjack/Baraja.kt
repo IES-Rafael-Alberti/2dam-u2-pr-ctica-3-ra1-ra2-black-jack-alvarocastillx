@@ -1,11 +1,11 @@
 package com.acasloa946.blackjack
 
-class Jugador() {
+class Baraja() {
 
     /**
      * Companion objects de métodos y variables de la baraja
      */
-        val mano = mutableListOf<Carta>()
+
         val listaDeResources = mutableListOf(
             R.drawable.as1,
             R.drawable.as2,
