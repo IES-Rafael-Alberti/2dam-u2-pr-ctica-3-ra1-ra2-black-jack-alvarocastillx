@@ -14,9 +14,12 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -144,6 +147,7 @@ fun Pantalla1vs1(NavController: NavController) {
 
             }
         )
+        ControlFichas(manoJugador1, manoJugador2)
 
         UIPlayers(
             manoJugador1, manoJugador2, valorJugador1, valorJugador2,
@@ -153,6 +157,21 @@ fun Pantalla1vs1(NavController: NavController) {
                 jugador2haTerminado = true
             }
         )
+        BotonReiniciar(jugador1haTerminado, jugador2haTerminado,
+            onClickReiniciar = {
+                baraja.borrarBaraja()
+                valorJugador1 = 0
+                valorJugador2 = 0
+                manoJugador1.clear()
+                manoJugador2.clear()
+                textoTurno = ""
+                estadoBotones = true
+                jugador1haPasado = false
+                jugador2haPasado = false
+                estadoActual = null
+                jugador1haTerminado = false
+                jugador2haTerminado = false
+            })
     }
 }
 
@@ -168,7 +187,7 @@ fun UIPlayers(
 ) {
     //jugador 1
     if (manoJugador1.isNotEmpty()) {
-        TextoJugador(number = 1)
+        TextoJugador(string = "1")
     }
     //
     LazyRow() {
@@ -195,7 +214,7 @@ fun UIPlayers(
     //jugador2
     Spacer(modifier = Modifier.padding(10.dp))
     if (manoJugador2.isNotEmpty()) {
-        TextoJugador(number = 2)
+        TextoJugador(string = "2")
     }
     LazyRow() {
         items(manoJugador2) { carta ->
@@ -229,9 +248,9 @@ fun ImagenJugador(foto: Int) {
 
 
 @Composable
-fun TextoJugador(number: Int) {
+fun TextoJugador(string: String) {
     Text(
-        text = "Jugador $number",
+        text = "Jugador $string",
         fontSize = 25.sp,
         fontFamily = FontFamily.Monospace,
         color = Color.Black,
@@ -317,6 +336,8 @@ fun ControlarTurno(
         } else if (jugador1haPasado && jugador2haPasado) {
             if (valorJugador1 < valorJugador2) {
                 TextoFinal("La partida ha finalizado. Ha ganado el jugador 2.")
+            } else if (valorJugador1 == valorJugador2) {
+                TextoFinal("Empate.")
             } else {
                 TextoFinal("La partida ha finalizado. Ha ganado el jugador 1.")
             }
@@ -333,3 +354,114 @@ fun ControlarTurno(
 
 }
 
+@Composable
+fun BotonReiniciar(
+    jugador1haTerminado: Boolean,
+    jugador2haTerminado: Boolean,
+    onClickReiniciar: () -> Unit
+) {
+
+    if (jugador1haTerminado && jugador2haTerminado) {
+        Button(
+            shape = RectangleShape,
+            onClick = {
+                onClickReiniciar()
+            },
+            colors = ButtonDefaults.buttonColors(Color.Red),
+            modifier = Modifier.padding(top = 20.dp)
+        ) {
+            Text(
+                text = "Reiniciar", textAlign = TextAlign.Center, color = Color.Black
+            )
+
+        }
+    }
+}
+
+@Composable
+fun ControlFichas(
+    manoJugador1: MutableList<Carta>,
+    manoJugador2: MutableList<Carta>
+) {
+    var puntosJugador1 by remember { mutableFloatStateOf(1000f) }
+    val rango by remember{ mutableStateOf(0f..puntosJugador1 )}
+
+    var puntosJugador2 by rememberSaveable { mutableStateOf(1000f) }
+    val rango2 by remember { mutableStateOf(0f..puntosJugador2 )}
+
+    var botonEstado by remember { mutableStateOf(true) }
+    var numeroDeApuestas by rememberSaveable { mutableStateOf(0) }
+
+    if (manoJugador1.isEmpty() && manoJugador2.isEmpty()) {
+
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(30.dp)
+        ) {
+
+            Text(text = "Apuestas",
+                fontSize = 25.sp,
+                fontFamily = FontFamily.Monospace,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 10.dp))
+            TextoJugador(string = "1")
+
+            Text(text = "$puntosJugador1€",
+                fontFamily = FontFamily.Monospace,
+                color = Color.Black)
+            Slider(
+                value = puntosJugador1,
+                valueRange = rango,
+                onValueChange = { puntosJugador1 = it },
+                colors = SliderDefaults.colors(
+                    thumbColor = Color.Red,
+                    activeTrackColor = Color.Black,
+                    inactiveTrackColor = Color.Red
+                )
+            )
+            TextoJugador(string = "2")
+            Text(text = "$puntosJugador2€",
+                fontFamily = FontFamily.Monospace,
+                color = Color.Black)
+            Slider(
+                value = puntosJugador2,
+                valueRange = rango2,
+                onValueChange = { puntosJugador2 = it },
+                colors = SliderDefaults.colors(
+                    thumbColor = Color.Red,
+                    activeTrackColor = Color.Black,
+                    inactiveTrackColor = Color.Red
+                )
+            )
+
+            Button(
+                shape = RectangleShape,
+                onClick = {
+                    if (numeroDeApuestas==0) {
+                        var puntosTotales = puntosJugador1
+                        puntosJugador1 = puntosTotales - puntosJugador1
+                        var puntosTotales2 = puntosJugador2
+                        puntosJugador2 = puntosTotales2 - puntosJugador1
+                        botonEstado = false
+                        numeroDeApuestas++
+                    }
+                    else {
+
+                    }
+
+
+                },
+                colors = ButtonDefaults.buttonColors(Color.Red),
+                enabled = botonEstado
+            ) {
+                Text(
+                    text = "Apostar", textAlign = TextAlign.Center, color = Color.Black
+                )
+
+            }
+
+
+        }
+    }
+}
