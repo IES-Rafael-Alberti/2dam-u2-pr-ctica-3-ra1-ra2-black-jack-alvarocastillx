@@ -399,7 +399,7 @@ fun ControlFichas(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(30.dp)
         ) {
-
+            println()
             Text(text = "Apuestas",
                 fontSize = 25.sp,
                 fontFamily = FontFamily.Monospace,
