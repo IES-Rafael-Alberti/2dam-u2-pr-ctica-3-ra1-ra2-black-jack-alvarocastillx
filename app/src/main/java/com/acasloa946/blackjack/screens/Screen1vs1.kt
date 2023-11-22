@@ -214,7 +214,7 @@ fun Pantalla1vs1(NavController: NavController) {
 
 
 @Composable
-fun UIPlayers(
+private fun UIPlayers(
     manoJugador1: MutableList<Carta>,
     manoJugador2: MutableList<Carta>,
     valorJugador1: Int,
@@ -275,7 +275,7 @@ fun UIPlayers(
 }
 
 @Composable
-fun ImagenJugador(foto: Int) {
+private fun ImagenJugador(foto: Int) {
     Image(
         painter = painterResource(id = foto),
         contentDescription = null,

@@ -84,10 +84,10 @@ class Baraja() {
                             listaCartas.add(Carta(i, j, 1, 11, listaDeResources[1]))
                         }
                         if (j == Palos.TREBOLES) {
-                            listaCartas.add(Carta(i, j, 1, 11, listaDeResources[3]))
+                            listaCartas.add(Carta(i, j, 1, 11, listaDeResources[2]))
                         }
                         if (j == Palos.PICAS) {
-                            listaCartas.add(Carta(i, j, 1, 11, listaDeResources[4]))
+                            listaCartas.add(Carta(i, j, 1, 11, listaDeResources[3]))
 
                         }
                     } else if (i == Naipes.ROI || i == Naipes.VALET || i == Naipes.DAMA) {
