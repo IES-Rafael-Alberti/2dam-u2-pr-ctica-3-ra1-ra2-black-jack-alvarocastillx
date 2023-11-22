@@ -57,7 +57,7 @@ fun PantallaModo(NavController: NavController) {
 
         Button(
             shape = RectangleShape,
-            onClick = { /*TODO*/ },
+            onClick = { NavController.navigate(Routes.Pantalla1vsIA.route) },
             modifier = Modifier
                 .size(height = 130.dp, width = 150.dp),
             colors = ButtonDefaults.buttonColors(Color.Red)

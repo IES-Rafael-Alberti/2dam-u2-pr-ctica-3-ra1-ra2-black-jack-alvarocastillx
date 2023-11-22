@@ -41,6 +41,7 @@ import androidx.navigation.NavController
 import com.acasloa946.blackjack.Baraja
 import com.acasloa946.blackjack.Carta
 import com.acasloa946.blackjack.Jugador
+import com.acasloa946.blackjack.Naipes
 import com.acasloa946.blackjack.R
 
 var estadoActual: String? = null
@@ -69,6 +70,9 @@ fun Pantalla1vs1(NavController: NavController) {
     val jugador2 = Jugador()
     var manoJugador2 by remember { mutableStateOf(jugador2.Mano) }
     var valorJugador2 by rememberSaveable { mutableStateOf(0) }
+
+    var botonEstadoApuesta by remember { mutableStateOf(true) }
+
 
 
     Column(
@@ -104,6 +108,7 @@ fun Pantalla1vs1(NavController: NavController) {
         )
         RowBotonesJugadores(
             onClickPedir = {
+                botonEstadoApuesta = true
                 if (jugador1haTerminado) {
                     estadoActual = estado[1]
                 }
@@ -121,7 +126,21 @@ fun Pantalla1vs1(NavController: NavController) {
                     if (!jugador1haTerminado) {
                         estadoActual = estado[1]
                     }
-                    valorJugador1 += ultimaCarta.PuntosMax
+                    //controla el uso del AS
+                    if (ultimaCarta.Nombre == Naipes.AS) {
+                        if ((valorJugador1 + ultimaCarta.PuntosMax) >= 17 && (valorJugador1 + ultimaCarta.PuntosMax) < 21) {
+                            valorJugador1 += ultimaCarta.PuntosMax
+                        }
+                        else if((valorJugador1 + ultimaCarta.PuntosMax) > 21) {
+                            valorJugador1 += ultimaCarta.PuntosMin
+                        }
+                        else {
+                            valorJugador1 += ultimaCarta.PuntosMax
+                        }
+                    }
+                    else {
+                        valorJugador1 += ultimaCarta.PuntosMax
+                    }
 
                 } else if (estadoActual == "TJ2") {
                     val ultimaCarta = baraja.dameCarta()
@@ -129,7 +148,21 @@ fun Pantalla1vs1(NavController: NavController) {
                     if (!jugador1haTerminado) {
                         estadoActual = estado[0]
                     }
-                    valorJugador2 += ultimaCarta.PuntosMax
+                    //control del as
+                    if (ultimaCarta.Nombre == Naipes.AS) {
+                        if ((valorJugador2 + ultimaCarta.PuntosMax) >= 17 && (valorJugador2 + ultimaCarta.PuntosMax) < 21) {
+                            valorJugador2 += ultimaCarta.PuntosMax
+                        }
+                        else if((valorJugador2 + ultimaCarta.PuntosMax) > 21) {
+                            valorJugador2 += ultimaCarta.PuntosMin
+                        }
+                        else {
+                            valorJugador2 += ultimaCarta.PuntosMax
+                        }
+                    }
+                    else {
+                        valorJugador2 += ultimaCarta.PuntosMax
+                    }
                 }
 
 
@@ -147,7 +180,11 @@ fun Pantalla1vs1(NavController: NavController) {
 
             }
         )
-        ControlFichas(manoJugador1, manoJugador2)
+        ControlFichas(manoJugador1, manoJugador2,
+            botonEstadoApuesta,
+            cambiarBotonApuesta = {
+                botonEstadoApuesta = false
+            })
 
         UIPlayers(
             manoJugador1, manoJugador2, valorJugador1, valorJugador2,
@@ -259,7 +296,7 @@ fun TextoJugador(string: String) {
 }
 
 @Composable
-fun RowBotonesJugadores(
+private fun RowBotonesJugadores(
     onClickPedir: () -> Unit, botonEstado: Boolean,
     onClickPasar: () -> Unit,
 ) {
@@ -316,7 +353,7 @@ fun TextoFinal(txt: String) {
 }
 
 @Composable
-fun ControlarTurno(
+private fun ControlarTurno(
     jugador1haTerminado: Boolean,
     jugador2haTerminado: Boolean,
     cambiarEstadoBoton: () -> Unit,
@@ -381,16 +418,16 @@ fun BotonReiniciar(
 @Composable
 fun ControlFichas(
     manoJugador1: MutableList<Carta>,
-    manoJugador2: MutableList<Carta>
+    manoJugador2: MutableList<Carta>,
+    botonEstadoApuesta:Boolean,
+    cambiarBotonApuesta : () -> Unit
 ) {
+    var apuestaJugador1 by remember { mutableFloatStateOf(0f) }
     var puntosJugador1 by remember { mutableFloatStateOf(1000f) }
-    val rango by remember{ mutableStateOf(0f..puntosJugador1 )}
 
+    var apuestaJugador2 by remember { mutableFloatStateOf(0f) }
     var puntosJugador2 by rememberSaveable { mutableStateOf(1000f) }
-    val rango2 by remember { mutableStateOf(0f..puntosJugador2 )}
 
-    var botonEstado by remember { mutableStateOf(true) }
-    var numeroDeApuestas by rememberSaveable { mutableStateOf(0) }
 
     if (manoJugador1.isEmpty() && manoJugador2.isEmpty()) {
 
@@ -399,21 +436,24 @@ fun ControlFichas(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(30.dp)
         ) {
-            println()
-            Text(text = "Apuestas",
+            Text(
+                text = "Apuestas",
                 fontSize = 25.sp,
                 fontFamily = FontFamily.Monospace,
                 color = Color.Black,
-                modifier = Modifier.padding(bottom = 10.dp))
+                modifier = Modifier.padding(bottom = 10.dp)
+            )
             TextoJugador(string = "1")
 
-            Text(text = "$puntosJugador1€",
+            Text(
+                text = "$apuestaJugador1€",
                 fontFamily = FontFamily.Monospace,
-                color = Color.Black)
+                color = Color.Black
+            )
             Slider(
-                value = puntosJugador1,
-                valueRange = rango,
-                onValueChange = { puntosJugador1 = it },
+                value = apuestaJugador1,
+                valueRange = 0f..puntosJugador1,
+                onValueChange = { apuestaJugador1 = it },
                 colors = SliderDefaults.colors(
                     thumbColor = Color.Red,
                     activeTrackColor = Color.Black,
@@ -421,13 +461,15 @@ fun ControlFichas(
                 )
             )
             TextoJugador(string = "2")
-            Text(text = "$puntosJugador2€",
+            Text(
+                text = "$apuestaJugador2€",
                 fontFamily = FontFamily.Monospace,
-                color = Color.Black)
+                color = Color.Black
+            )
             Slider(
-                value = puntosJugador2,
-                valueRange = rango2,
-                onValueChange = { puntosJugador2 = it },
+                value = apuestaJugador2,
+                valueRange = 0f..puntosJugador2,
+                onValueChange = { apuestaJugador2 = it },
                 colors = SliderDefaults.colors(
                     thumbColor = Color.Red,
                     activeTrackColor = Color.Black,
@@ -438,22 +480,14 @@ fun ControlFichas(
             Button(
                 shape = RectangleShape,
                 onClick = {
-                    if (numeroDeApuestas==0) {
-                        var puntosTotales = puntosJugador1
-                        puntosJugador1 = puntosTotales - puntosJugador1
-                        var puntosTotales2 = puntosJugador2
-                        puntosJugador2 = puntosTotales2 - puntosJugador1
-                        botonEstado = false
-                        numeroDeApuestas++
-                    }
-                    else {
-
-                    }
-
-
+                    puntosJugador1 = puntosJugador1 - apuestaJugador1
+                    apuestaJugador1 = 0f
+                    puntosJugador2 = puntosJugador2 - apuestaJugador2
+                    apuestaJugador2 = 0f
+                    cambiarBotonApuesta()
                 },
                 colors = ButtonDefaults.buttonColors(Color.Red),
-                enabled = botonEstado
+                enabled = botonEstadoApuesta
             ) {
                 Text(
                     text = "Apostar", textAlign = TextAlign.Center, color = Color.Black
@@ -465,3 +499,5 @@ fun ControlFichas(
         }
     }
 }
+
+
