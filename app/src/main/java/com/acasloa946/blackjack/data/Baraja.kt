@@ -1,4 +1,6 @@
-package com.acasloa946.blackjack
+package com.acasloa946.blackjack.data
+
+import com.acasloa946.blackjack.R
 
 class Baraja() {
 
@@ -125,8 +127,8 @@ class Baraja() {
          */
         fun dameCarta(): Carta {
             if (listaCartas.isNotEmpty()) {
-                listaCartas.remove(listaCartas.last())
                 Carta = listaCartas.last()
+                listaCartas.remove(listaCartas.last())
                 if (listaCartas.size == 1) {
                     ultimaCarta = true
                 }

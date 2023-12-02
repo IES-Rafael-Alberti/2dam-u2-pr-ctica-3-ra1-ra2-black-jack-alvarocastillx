@@ -1,4 +1,4 @@
-package com.acasloa946.blackjack.screens
+package com.acasloa946.blackjack.userInterface
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement

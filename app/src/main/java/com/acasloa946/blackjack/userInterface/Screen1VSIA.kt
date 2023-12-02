@@ -1,4 +1,4 @@
-package com.acasloa946.blackjack.screens
+package com.acasloa946.blackjack.userInterface
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
@@ -39,13 +39,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
-import com.acasloa946.blackjack.Baraja
-import com.acasloa946.blackjack.Carta
-import com.acasloa946.blackjack.Jugador
-import com.acasloa946.blackjack.Naipes
+import com.acasloa946.blackjack.data.Baraja
+import com.acasloa946.blackjack.data.Carta
+import com.acasloa946.blackjack.data.Jugador
+import com.acasloa946.blackjack.data.Naipes
 import com.acasloa946.blackjack.R
 
-
+/*
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun Pantalla1vsIA(NavController: NavController) {
@@ -115,15 +115,12 @@ fun Pantalla1vsIA(NavController: NavController) {
                     if (ultimaCarta.Nombre == Naipes.AS) {
                         if ((valorJugador1 + ultimaCarta.PuntosMax) >= 17 && (valorJugador1 + ultimaCarta.PuntosMax) < 21) {
                             valorJugador1 += ultimaCarta.PuntosMax
-                        }
-                        else if((valorJugador1 + ultimaCarta.PuntosMax) > 21) {
+                        } else if ((valorJugador1 + ultimaCarta.PuntosMax) > 21) {
                             valorJugador1 += ultimaCarta.PuntosMin
-                        }
-                        else {
+                        } else {
                             valorJugador1 += ultimaCarta.PuntosMax
                         }
-                    }
-                    else {
+                    } else {
                         valorJugador1 += ultimaCarta.PuntosMax
                     }
 
@@ -160,17 +157,15 @@ fun Pantalla1vsIA(NavController: NavController) {
                 if (it.Nombre == Naipes.AS) {
                     if ((valorIA + it.PuntosMax) >= 17 && (valorIA + it.PuntosMax) < 21) {
                         valorIA += it.PuntosMax
-                    }
-                    else if((valorIA + it.PuntosMax) > 21) {
+                    } else if ((valorIA + it.PuntosMax) > 21) {
                         valorIA += it.PuntosMin
-                    }
-                    else {
+                    } else {
                         valorIA += it.PuntosMax
                     }
+                } else {
+                    valorIA += it.PuntosMax // = it.PuntosMin
                 }
-                else {
-                    valorIA += it.PuntosMax
-                }
+                println(valorIA)
             },
             cambiarManoIA = {
                 manoIA = manoIA.toMutableList().apply { add(it) }
@@ -179,9 +174,12 @@ fun Pantalla1vsIA(NavController: NavController) {
                 IAhaPasado = true
                 IAhaTerminado = true
                 estadoActual = estado[0]
+            },
+            changeIAhaTerminado = {
+                IAhaTerminado = true
             }
         )
-        Opciones(manoJugador1,manoIA,
+        Opciones(manoJugador1, manoIA,
             cambiarShowDialog = {
                 showDialog = true
             })
@@ -199,7 +197,7 @@ fun Pantalla1vsIA(NavController: NavController) {
                 jugador1haTerminado = true
             }, changeJugador2haTerminado = {
                 IAhaTerminado = true
-            },jugador1haTerminado,IAhaTerminado,ocultarCartas
+            }, jugador1haTerminado, IAhaTerminado, ocultarCartas
         )
         BotonReiniciar(jugador1haTerminado, IAhaTerminado,
             onClickReiniciar = {
@@ -229,12 +227,13 @@ private fun ControlarTurnoIA(
     jugador1haPasado: Boolean,
     IAhaPasado: Boolean,
     valorJugador1: Int,
-    valorIA:Int,
+    valorIA: Int,
     baraja: Baraja.Companion,
-    estado : MutableList<String>,
-    sumarValorIA : (Carta) -> Unit,
-    cambiarManoIA : (Carta) -> Unit,
-    IAPasa : () -> Unit
+    estado: MutableList<String>,
+    sumarValorIA: (Carta) -> Unit,
+    cambiarManoIA: (Carta) -> Unit,
+    IAPasa: () -> Unit,
+    changeIAhaTerminado : () -> Unit
 
 
 ) {
@@ -262,30 +261,38 @@ private fun ControlarTurnoIA(
         cambiarTextoTurno("Turno: IA")
     }
     ////
-    if (estadoActual== "TJ2") {
-        if (valorIA>=17) {
+    if (estadoActual == "TJ2") {
+        if (valorJugador1 > 21) {
             IAPasa()
         }
-        if (valorIA < 17){
+        if (valorIA >= 17) {
+            IAPasa()
+        }
+        if (valorIA < 17) {
             val ultimaCarta = baraja.dameCarta()
             cambiarManoIA(ultimaCarta)
             if (!jugador1haTerminado) {
-                com.acasloa946.blackjack.screens.estadoActual = estado[0]
+                com.acasloa946.blackjack.userInterface.estadoActual = estado[0]
             }
             sumarValorIA(ultimaCarta)
+        }
+        if (valorIA > 21) {
+            changeIAhaTerminado()
         }
 
     }
 
 }
+
 @Composable
-private fun ImagenJugador(foto:Int) {
+private fun ImagenJugador(foto: Int) {
     Image(
         painter = painterResource(id = foto),
         contentDescription = null,
         modifier = Modifier.size(100.dp)
     )
 }
+
 @Composable
 private fun RowBotonesJugadores(
     onClickPedir: () -> Unit, botonEstado: Boolean,
@@ -320,6 +327,7 @@ private fun RowBotonesJugadores(
         }
     }
 }
+
 @Composable
 private fun UIPlayers(
     manoJugador1: MutableList<Carta>,
@@ -338,7 +346,7 @@ private fun UIPlayers(
         TextoJugador(string = "1")
     }
     //
-    LazyRow() {
+    LazyRow {
         items(manoJugador1) { carta ->
             ImagenJugador(foto = carta.IdDrawable)
         }
@@ -351,11 +359,12 @@ private fun UIPlayers(
         }
     }
     if (manoJugador1.isNotEmpty()) {
-        TextoValor(valorJugador1, cambiarEstadoJugador = {
-            if (valorJugador1 > 21) {
-                changeJugador1haTerminado()
-            }
-        })
+            TextoValor(valorJugador1, cambiarEstadoJugador = {
+                if (valorJugador1 > 21) {
+                    changeJugador1haTerminado()
+                }
+                //hay q borrar esto y cambiarlo en la función de la screen 1vs1
+            })
     }
 
 
@@ -365,7 +374,7 @@ private fun UIPlayers(
         TextoJugador(string = "2")
     }
     if (!ocultarCartas || (jugador1haTerminado && IAhaTerminado)) {
-        LazyRow() {
+        LazyRow {
             items(manoJugador2) { carta ->
                 ImagenJugador(foto = carta.IdDrawable)
             }
@@ -377,10 +386,9 @@ private fun UIPlayers(
                 }
             }
         }
-    }
-    else if(ocultarCartas) {
-        LazyRow() {
-            items(manoJugador2) { carta ->
+    } else if (ocultarCartas) {
+        LazyRow {
+            items(manoJugador2) { _ ->
                 ImagenJugador(foto = R.drawable.facedown)
             }
         }
@@ -396,9 +404,7 @@ private fun UIPlayers(
     if (manoJugador2.isNotEmpty()) {
         if (!ocultarCartas) {
             TextoValor(valorJugador2, cambiarEstadoJugador = {
-                if (valorJugador2 > 21) {
-                    changeJugador2haTerminado()
-                }
+                //hay q borrar esto y cambiarlo en la función de la screen 1vs1
             })
         }
     }
@@ -409,10 +415,9 @@ private fun UIPlayers(
 fun Opciones(
     manoJugador1: MutableList<Carta>,
     manoJugador2: MutableList<Carta>,
-    cambiarShowDialog : () -> Unit
+    cambiarShowDialog: () -> Unit
 
 ) {
-
 
 
     if (manoJugador1.isEmpty() && manoJugador2.isEmpty()) {
@@ -436,16 +441,16 @@ fun Opciones(
             }
 
 
-
         }
     }
 }
+
 @Composable
 fun DialogOpciones(
-    showDialog : Boolean,
-    cambiarShowDialog : () -> Unit,
-    mostrarCartas : Boolean,
-    onCheckedMostrarCartas : (Boolean) -> Unit
+    showDialog: Boolean,
+    cambiarShowDialog: () -> Unit,
+    mostrarCartas: Boolean,
+    onCheckedMostrarCartas: (Boolean) -> Unit
 ) {
 
     if (showDialog) {
@@ -462,9 +467,10 @@ fun DialogOpciones(
                     text = "Esconder cartas de IA",
                     color = Color.White
                 )
-                Checkbox(checked = mostrarCartas, onCheckedChange = {
-                    onCheckedMostrarCartas(it)
-                },
+                Checkbox(
+                    checked = mostrarCartas, onCheckedChange = {
+                        onCheckedMostrarCartas(it)
+                    },
                     colors = CheckboxDefaults.colors(Color.Red)
                 )
                 Button(
@@ -483,3 +489,5 @@ fun DialogOpciones(
         }
     }
 }
+
+ */

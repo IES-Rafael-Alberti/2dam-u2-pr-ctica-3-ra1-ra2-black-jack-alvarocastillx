@@ -1,6 +1,6 @@
-package com.acasloa946.blackjack
+package com.acasloa946.blackjack.data
 
-class Carta(nombre:Naipes,palo:Palos,puntosMin:Int,puntosMax:Int,idDrawable:Int) {
+class Carta(nombre: Naipes, palo: Palos, puntosMin:Int, puntosMax:Int, idDrawable:Int) {
     //variables que necesito
     var IdDrawable = idDrawable
     var Nombre = nombre
@@ -9,5 +9,5 @@ class Carta(nombre:Naipes,palo:Palos,puntosMin:Int,puntosMax:Int,idDrawable:Int)
     var PuntosMin = puntosMin
     var PuntosMax = puntosMax
     //constructor vacío para inicializar una Carta
-    constructor():this(Naipes.AS,Palos.PICAS,0,0,0)
+    constructor():this(Naipes.AS, Palos.PICAS,0,0,0)
 }
