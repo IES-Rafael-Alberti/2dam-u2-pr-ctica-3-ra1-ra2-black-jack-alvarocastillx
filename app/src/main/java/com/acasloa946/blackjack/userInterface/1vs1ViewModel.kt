@@ -6,12 +6,17 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.acasloa946.blackjack.data.Baraja
 import com.acasloa946.blackjack.data.Carta
-import kotlinx.coroutines.DEBUG_PROPERTY_VALUE_OFF
+import com.acasloa946.blackjack.data.Jugador
 
 class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
 
     private val baraja = Baraja
 
+    private val _player1 = MutableLiveData<Jugador>()
+    private val _player2 = MutableLiveData<Jugador>()
+
+    private var _nombreP1 = MutableLiveData<String>()
+    var nombreP1: LiveData<String> = _nombreP1
 
     private var _handP1 = MutableLiveData<MutableList<Carta>>()
     var handP1: LiveData<MutableList<Carta>> = _handP1
@@ -48,6 +53,16 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
     private var _mensajeFinal = MutableLiveData<String>()
     val mensajeFinal: LiveData<String> = _mensajeFinal
 
+    private var _ptsJ1 = MutableLiveData<Float>()
+    val ptsJ1: LiveData<Float> = _ptsJ1
+
+    private var _ptsJ2 = MutableLiveData<Float>()
+    val ptsJ2: LiveData<Float> = _ptsJ2
+
+    private val _refreshApuestas = MutableLiveData<Boolean>()
+    val refreshApuestas: LiveData<Boolean> = _refreshApuestas
+
+
 
 
     init {
@@ -55,6 +70,10 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
         baraja.barajar()
         _handP1.value = mutableListOf()
         _handP2.value = mutableListOf()
+        _ptsJ1.value = 1000f
+        _ptsJ2.value = 1000f
+        _player1.value = Jugador(_handP1,_ptsJ1.value,"Jugador 1")
+        _player2.value = Jugador(_handP2,_ptsJ2.value,"Jugador 2")
         _valorJ1.value = 0
         _valorJ2.value = 0
         _J1HaTerminado.value = false
@@ -63,6 +82,7 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
         _J2HaPasado.value = false
         controlTurno()
         _refreshTxtTurno.value = false
+        _refreshApuestas.value = false
     }
 
     fun getCard() {
@@ -84,6 +104,11 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
 
     fun refrescarTxtTurno() {
         _refreshTxtTurno.value = !_refreshTxtTurno.value!!
+    }
+
+    fun refrescarApuestas() {
+        _refreshApuestas.value = !_refreshApuestas.value!!
+
     }
 
     fun controlTurno() {
@@ -184,6 +209,9 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
         _J1HaTerminado.value = false
         _J2HaTerminado.value = false
         _refreshTxtTurno.value = false
+        _mensajeFinal.value = ""
+        _player1.value = Jugador(_handP1,_ptsJ1.value,"Jugador 1")
+        _player2.value = Jugador(_handP2,_ptsJ2.value,"Jugador 2")
     }
 
     fun msjToastFinal() {
@@ -209,7 +237,24 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
                 _mensajeFinal.value = "La partida ha finalizado. No ha  ganado nadie."
             }
         }
+
     }
+
+     fun controlFichas(apuestaJugador1:Float,apuestaJugador2: Float) {
+        if (_mensajeFinal.value == "Ha ganado el jugador 1") {
+            _ptsJ1.value = _player1.value!!.Fichas?.plus(apuestaJugador2)
+            _ptsJ2.value = _player2.value!!.Fichas?.minus(apuestaJugador2)
+
+        }
+        else if (_mensajeFinal.value == "Ha ganado el jugador 2") {
+            _ptsJ2.value = _player2.value!!.Fichas?.plus(apuestaJugador1)
+            _ptsJ1.value  = _player1.value!!.Fichas?.minus(apuestaJugador1)
+
+        }
+        refrescarApuestas()
+
+    }
+
 
 
 }

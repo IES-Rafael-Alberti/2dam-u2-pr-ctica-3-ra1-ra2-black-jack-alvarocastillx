@@ -19,11 +19,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -54,9 +59,13 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
     val refreshPlayerCards: Boolean by viewModel1vs1.refreshPlayerCards.observeAsState(initial = false)
     val refreshTxtTurno: Boolean by viewModel1vs1.refreshTxtTurno.observeAsState(initial = false)
     var showDialog: Boolean by rememberSaveable { mutableStateOf(false) }
-    var ocultarCartas : Boolean by rememberSaveable { mutableStateOf(false) }
+    var ocultarCartas: Boolean by rememberSaveable { mutableStateOf(false) }
     val J1HaTerminado: Boolean by viewModel1vs1.J1HaTerminado.observeAsState(initial = false)
     val J2HaTerminado: Boolean by viewModel1vs1.J2HaTerminado.observeAsState(initial = false)
+    var apuestaJugador1 by remember { mutableFloatStateOf(0f) }
+    var apuestaJugador2 by remember { mutableFloatStateOf(0f) }
+    val refreshApuestas: Boolean by viewModel1vs1.refreshApuestas.observeAsState(initial = false)
+
 
 
 
@@ -77,11 +86,45 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
         Spacer(modifier = Modifier.padding(bottom = 15.dp))
         TextoJugador(player = 1, handP1, handP2)
         ManoJugador1(handP1, refreshPlayerCards)
-        TextoValor(viewModel1vs1 = viewModel1vs1, player = 1, handP1, handP2,ocultarCartas,J1HaTerminado, J2HaTerminado)
+        TextoValor(
+            viewModel1vs1 = viewModel1vs1,
+            player = 1,
+            handP1,
+            handP2,
+            ocultarCartas,
+            J1HaTerminado,
+            J2HaTerminado
+        )
         TextoJugador(2, handP1, handP2)
-        ManoJugador2(handP2 = handP2, refreshPlayerCards = refreshPlayerCards,ocultarCartas, J1HaTerminado, J2HaTerminado)
-        TextoValor(viewModel1vs1 = viewModel1vs1, player = 2, handP1, handP2,ocultarCartas,J1HaTerminado, J2HaTerminado)
-        BotonReiniciar(viewModel1vs1 = viewModel1vs1,J1HaTerminado, J2HaTerminado)
+        ManoJugador2(
+            handP2 = handP2,
+            refreshPlayerCards = refreshPlayerCards,
+            ocultarCartas,
+            J1HaTerminado,
+            J2HaTerminado
+        )
+        TextoValor(
+            viewModel1vs1 = viewModel1vs1,
+            player = 2,
+            handP1,
+            handP2,
+            ocultarCartas,
+            J1HaTerminado,
+            J2HaTerminado
+        )
+        BotonReiniciar(
+            viewModel1vs1 = viewModel1vs1,
+            J1HaTerminado,
+            J2HaTerminado,
+            apuestaJugador1,
+            apuestaJugador2,
+            changeApuesta1 = {
+                apuestaJugador1 = it
+            },
+            changeApuesta2 = {
+                apuestaJugador2 = it
+            }
+        )
         BotonOpciones(handP1 = handP1, handP2 = handP2, cambiarShowDialog = {
             showDialog = !showDialog
         })
@@ -91,7 +134,15 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
             ocultarCartas,
             cambiarOcultarCartas = {
                 ocultarCartas = it
-            })
+            },
+            viewModel1vs1, apuestaJugador1, apuestaJugador2,
+            changeApuesta1 = {
+                apuestaJugador1 = it
+            },
+            changeApuesta2 = {
+                apuestaJugador2 = it
+            },
+            refreshApuestas)
 
 
     }
@@ -110,7 +161,13 @@ fun ManoJugador1(handP1: List<Carta>, refreshPlayerCards: Boolean) {
 }
 
 @Composable
-fun ManoJugador2(handP2: List<Carta>, refreshPlayerCards: Boolean, ocultarCartas: Boolean,J1HaTerminado:Boolean,J2HaTerminado:Boolean) {
+fun ManoJugador2(
+    handP2: List<Carta>,
+    refreshPlayerCards: Boolean,
+    ocultarCartas: Boolean,
+    J1HaTerminado: Boolean,
+    J2HaTerminado: Boolean
+) {
     if (!ocultarCartas || (J1HaTerminado && J2HaTerminado)) {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(-100.dp)
@@ -119,8 +176,7 @@ fun ManoJugador2(handP2: List<Carta>, refreshPlayerCards: Boolean, ocultarCartas
                 CrearImagen(foto = it.IdDrawable)
             }
         }
-    }
-    else if (ocultarCartas) {
+    } else if (ocultarCartas) {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(-100.dp)
         ) {
@@ -222,7 +278,15 @@ fun TextoTurno(viewModel1vs1: ViewModel1vs1, refreshTxtTurno: Boolean) {
 }
 
 @Composable
-fun BotonReiniciar(viewModel1vs1: ViewModel1vs1,J1HaTerminado: Boolean,J2HaTerminado: Boolean) {
+fun BotonReiniciar(
+    viewModel1vs1: ViewModel1vs1,
+    J1HaTerminado: Boolean,
+    J2HaTerminado: Boolean,
+    apuestaJugador1: Float,
+    apuestaJugador2: Float,
+    changeApuesta1: (Float) -> Unit,
+    changeApuesta2: (Float) -> Unit
+) {
 
     var mostrar = true
     val mensajeFinal: String by viewModel1vs1.mensajeFinal.observeAsState(initial = "")
@@ -234,7 +298,14 @@ fun BotonReiniciar(viewModel1vs1: ViewModel1vs1,J1HaTerminado: Boolean,J2HaTermi
         mostrar = false
         Button(
             shape = RectangleShape,
-            onClick = { viewModel1vs1.reiniciar() },
+            onClick = {
+                viewModel1vs1.controlFichas(apuestaJugador1, apuestaJugador2)
+                viewModel1vs1.reiniciar()
+                changeApuesta1(0f)
+                changeApuesta2(0f)
+
+
+            },
             colors = ButtonDefaults.buttonColors(Color.Red)
         ) {
             Text(
@@ -278,20 +349,41 @@ fun BotonOpciones(handP1: List<Carta>, handP2: List<Carta>, cambiarShowDialog: (
 }
 
 @Composable
-fun DialogOpciones(showDialog: Boolean, cambiarShowDialog: () -> Unit, ocultarCartas : Boolean, cambiarOcultarCartas : (Boolean) -> Unit) {
+fun DialogOpciones(
+    showDialog: Boolean,
+    cambiarShowDialog: () -> Unit,
+    ocultarCartas: Boolean,
+    cambiarOcultarCartas: (Boolean) -> Unit,
+    viewModel1vs1: ViewModel1vs1,
+    apuestaJugador1: Float,
+    apuestaJugador2: Float,
+    changeApuesta1: (Float) -> Unit,
+    changeApuesta2: (Float) -> Unit,
+    refreshApuesta: Boolean
+) {
+    val ptsJ1: Float by viewModel1vs1.ptsJ1.observeAsState(initial = 0f)
+    val ptsJ2: Float by viewModel1vs1.ptsJ2.observeAsState(initial = 0f)
+    println(ptsJ1)
     if (showDialog) {
         Dialog(onDismissRequest = { cambiarShowDialog() }) {
             Column(
                 modifier = Modifier
-                    .background(Color.Black)
+                    .background(Color.LightGray)
                     .padding(top = 10.dp, bottom = 10.dp)
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
+                    text = "Opciones",
+                    fontSize = 25.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Text(
                     text = "Esconder cartas",
-                    color = Color.White
+                    color = Color.Black
                 )
                 Checkbox(
                     checked = ocultarCartas, onCheckedChange = {
@@ -299,6 +391,49 @@ fun DialogOpciones(showDialog: Boolean, cambiarShowDialog: () -> Unit, ocultarCa
                     },
                     colors = CheckboxDefaults.colors(Color.Red)
                 )
+                Text(
+                    text = "Nombres",
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 5.dp)
+                )
+                Text(
+                    text = "Apuestas",
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 5.dp)
+                )
+                Text(
+                    text = "$apuestaJugador1€",
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.Black
+                )
+                Slider(
+                    value = apuestaJugador1,
+                    valueRange = 0f..ptsJ1,
+                    onValueChange = { changeApuesta1(it) },
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color.Red,
+                        activeTrackColor = Color.Black,
+                        inactiveTrackColor = Color.Red
+                    ),
+                    modifier = Modifier.padding(start = 8.dp,end=8.dp)
+                )
+                Text(
+                    text = "$apuestaJugador2€",
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.Black
+                )
+                Slider(
+                    value = apuestaJugador2,
+                    valueRange = 0f..ptsJ2,
+                    onValueChange = { changeApuesta2(it) },
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color.Red,
+                        activeTrackColor = Color.Black,
+                        inactiveTrackColor = Color.Red
+                    ),
+                    modifier = Modifier.padding(start = 8.dp,end=8.dp)
+                )
+
                 Button(
                     shape = RectangleShape,
                     onClick = {

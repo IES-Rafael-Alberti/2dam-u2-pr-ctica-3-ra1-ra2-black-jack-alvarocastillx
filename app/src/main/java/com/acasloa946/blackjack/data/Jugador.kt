@@ -1,8 +1,11 @@
 package com.acasloa946.blackjack.data
 
-class Jugador(mano:MutableList<Carta>, fichas:Int) {
+import androidx.lifecycle.MutableLiveData
+
+class Jugador(mano: MutableLiveData<MutableList<Carta>>, fichas: Float?, nombre: String) {
     var Mano = mano
     var Fichas = fichas
+    var Nombre = nombre
 
-    constructor():this(mutableListOf<Carta>(),0)
+    constructor():this(MutableLiveData<MutableList<Carta>>(),0f,"")
 }
