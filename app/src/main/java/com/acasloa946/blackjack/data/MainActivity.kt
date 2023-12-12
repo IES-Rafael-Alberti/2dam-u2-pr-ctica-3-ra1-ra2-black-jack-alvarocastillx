@@ -15,12 +15,16 @@ import com.acasloa946.blackjack.routes.Routes
 import com.acasloa946.blackjack.userInterface.Pantalla1vs1
 import com.acasloa946.blackjack.userInterface.PantallaModo
 import com.acasloa946.blackjack.ui.theme.BlackJackTheme
+import com.acasloa946.blackjack.userInterface.Pantalla1vsIA
+import com.acasloa946.blackjack.userInterface.PvsIAViewModel
 import com.acasloa946.blackjack.userInterface.ViewModel1vs1
 
 
 class MainActivity : ComponentActivity() {
 
     private val viewModel1vs1 : ViewModel1vs1 by viewModels()
+    private val viewModel1vsIA : PvsIAViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -34,7 +38,7 @@ class MainActivity : ComponentActivity() {
                     NavHost(NavController, startDestination = Routes.Pantallamodo.route) {
                         composable(Routes.Pantallamodo.route) { PantallaModo(NavController) }
                         composable(Routes.Pantalla1vs1.route) { Pantalla1vs1(NavController,viewModel1vs1) }
-                        //composable(Routes.Pantalla1vsIA.route) { Pantalla1vsIA(NavController) }
+                        composable(Routes.Pantalla1vsIA.route) { Pantalla1vsIA(NavController,viewModel1vsIA) }
                     }
                 }
             }

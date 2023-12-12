@@ -1,6 +1,7 @@
 package com.acasloa946.blackjack.userInterface
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,12 +18,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -31,6 +34,7 @@ import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -39,39 +43,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
-import com.acasloa946.blackjack.data.Baraja
 import com.acasloa946.blackjack.data.Carta
-import com.acasloa946.blackjack.data.Jugador
-import com.acasloa946.blackjack.data.Naipes
 import com.acasloa946.blackjack.R
 
-/*
 @SuppressLint("MutableCollectionMutableState")
 @Composable
-fun Pantalla1vsIA(NavController: NavController) {
-    val estado = mutableListOf<String>("TJ1", "TJ2", "Terminado")
+fun Pantalla1vsIA(NavController: NavController, viewModel1vsIA: PvsIAViewModel) {
 
-    var jugador1haTerminado by rememberSaveable { mutableStateOf(false) }
-    var IAhaTerminado by rememberSaveable { mutableStateOf(false) }
+    val handP1: List<Carta> by viewModel1vsIA.handP1.observeAsState(listOf())
+    val handP2: List<Carta> by viewModel1vsIA.handP2.observeAsState(listOf())
+    val refreshPlayerCards: Boolean by viewModel1vsIA.refreshPlayerCards.observeAsState(initial = false)
+    val refreshTxtTurno: Boolean by viewModel1vsIA.refreshTxtTurno.observeAsState(initial = false)
+    var showDialogOpciones: Boolean by rememberSaveable { mutableStateOf(false) }
+    var ocultarCartas: Boolean by rememberSaveable { mutableStateOf(false) }
+    val J1HaTerminado: Boolean by viewModel1vsIA.J1HaTerminado.observeAsState(initial = false)
+    val J2HaTerminado: Boolean by viewModel1vsIA.J2HaTerminado.observeAsState(initial = false)
+    val nombreJ1: String by viewModel1vsIA.nombreP1.observeAsState(initial = "Jugador 1")
+    val nombreJ2: String by viewModel1vsIA.nombreP2.observeAsState(initial = "Jugador 2")
+    var showDialogInstrucciones: Boolean by rememberSaveable { mutableStateOf(false) }
 
-    var jugador1haPasado by rememberSaveable { mutableStateOf(false) }
-    var IAhaPasado by rememberSaveable { mutableStateOf(false) }
 
-    var estadoBotones by rememberSaveable { mutableStateOf(true) }
-    var textoTurno by rememberSaveable { mutableStateOf("") }
-
-    val baraja = Baraja
-
-    val jugador1 = Jugador()
-    var manoJugador1 by remember { mutableStateOf(jugador1.Mano) }
-    var valorJugador1 by rememberSaveable { mutableStateOf(0) }
-
-    val IA = Jugador()
-    var manoIA by remember { mutableStateOf(IA.Mano) }
-    var valorIA by rememberSaveable { mutableStateOf(0) }
-
-    var showDialog by rememberSaveable { mutableStateOf(false) }
-    var ocultarCartas by remember { mutableStateOf(false) }
 
 
 
@@ -79,247 +70,148 @@ fun Pantalla1vsIA(NavController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .paint(
-                painterResource(id = R.drawable.mat), contentScale = ContentScale.FillHeight
+                painterResource(id = R.drawable.mat), contentScale = ContentScale.FillWidth
             ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        Text(
-            text = textoTurno,
-            fontSize = 17.sp,
-            fontFamily = FontFamily.Monospace,
-            color = Color.Black,
-            modifier = Modifier.padding(bottom = 30.dp),
-            fontStyle = FontStyle.Italic
+        viewModel1vsIA.controlTurno()
+        viewModel1vsIA.controlTxtTurno()
+        viewModel1vsIA.controlIA()
+        TextoTurno(viewModel1vsIA, refreshTxtTurno)
+        RowBotonesJugadores(viewModel1vsIA)
+        Spacer(modifier = Modifier.padding(bottom = 15.dp))
+        TextoJugador(player = 1, handP1, handP2, nombreJ1, nombreJ2)
+        ManoJugador1(handP1, refreshPlayerCards)
+        TextoValor(
+            viewModel1vs1 = viewModel1vsIA,
+            player = 1,
+            handP1,
+            handP2,
+            ocultarCartas,
+            J1HaTerminado,
+            J2HaTerminado
         )
-        RowBotonesJugadores(
-            onClickPedir = {
-                if (jugador1haTerminado) {
-                    estadoActual = estado[1]
-                }
-                if (IAhaTerminado) {
-                    estadoActual = estado[0]
-                }
-                if (estadoActual == null) {
-                    estadoActual = estado[0]
-                    baraja.crearBaraja()
-                    baraja.barajar()
-                }
-                if (estadoActual == "TJ1") {
-                    val ultimaCarta = baraja.dameCarta()
-                    manoJugador1 = manoJugador1.toMutableList().apply { add(ultimaCarta) }
-                    if (!jugador1haTerminado) {
-                        estadoActual = estado[1]
-                    }
-                    if (ultimaCarta.Nombre == Naipes.AS) {
-                        if ((valorJugador1 + ultimaCarta.PuntosMax) >= 17 && (valorJugador1 + ultimaCarta.PuntosMax) < 21) {
-                            valorJugador1 += ultimaCarta.PuntosMax
-                        } else if ((valorJugador1 + ultimaCarta.PuntosMax) > 21) {
-                            valorJugador1 += ultimaCarta.PuntosMin
-                        } else {
-                            valorJugador1 += ultimaCarta.PuntosMax
-                        }
-                    } else {
-                        valorJugador1 += ultimaCarta.PuntosMax
-                    }
-
-                }
-
-
-            }, botonEstado = estadoBotones,
-            onClickPasar = {
-                if (estadoActual == "TJ1") {
-                    jugador1haPasado = true
-                    jugador1haTerminado = true
-                    estadoActual = estado[1]
-                }
-
-            }
+        TextoJugador(2, handP1, handP2, nombreJ1, nombreJ2)
+        ManoJugador2(
+            handP2 = handP2,
+            refreshPlayerCards = refreshPlayerCards,
+            ocultarCartas,
+            J1HaTerminado,
+            J2HaTerminado
         )
-        ControlarTurnoIA(
-            jugador1haTerminado,
-            IAhaTerminado,
-            cambiarEstadoBoton = {
-                estadoBotones = false
-            },
-            estadoActual,
-            cambiarTextoTurno = {
-                textoTurno = it
-            },
-            jugador1haPasado,
-            IAhaPasado,
-            valorJugador1,
-            valorIA,
-            baraja,
-            estado,
-            sumarValorIA = {
-                if (it.Nombre == Naipes.AS) {
-                    if ((valorIA + it.PuntosMax) >= 17 && (valorIA + it.PuntosMax) < 21) {
-                        valorIA += it.PuntosMax
-                    } else if ((valorIA + it.PuntosMax) > 21) {
-                        valorIA += it.PuntosMin
-                    } else {
-                        valorIA += it.PuntosMax
-                    }
-                } else {
-                    valorIA += it.PuntosMax // = it.PuntosMin
-                }
-                println(valorIA)
-            },
-            cambiarManoIA = {
-                manoIA = manoIA.toMutableList().apply { add(it) }
-            },
-            IAPasa = {
-                IAhaPasado = true
-                IAhaTerminado = true
-                estadoActual = estado[0]
-            },
-            changeIAhaTerminado = {
-                IAhaTerminado = true
-            }
+        TextoValor(
+            viewModel1vs1 = viewModel1vsIA,
+            player = 2,
+            handP1,
+            handP2,
+            ocultarCartas,
+            J1HaTerminado,
+            J2HaTerminado
         )
-        Opciones(manoJugador1, manoIA,
-            cambiarShowDialog = {
-                showDialog = true
+        BotonReiniciar(
+            viewModel1vs1 = viewModel1vsIA,
+            J1HaTerminado,
+            J2HaTerminado
+        )
+        BotonOpcionesInstrucciones(handP1 = handP1, handP2 = handP2, cambiarShowDialogOpciones = {
+            showDialogOpciones = !showDialogOpciones
+        },
+            cambiarShowDialogInstrucciones = {
+                showDialogInstrucciones = !showDialogInstrucciones
             })
-        DialogOpciones(showDialog = showDialog,
-            cambiarShowDialog = {
-                showDialog = false
+        DialogOpciones(
+            showDialogOpciones = showDialogOpciones, cambiarShowDialogOpciones = {
+                showDialogOpciones = !showDialogOpciones
             },
             ocultarCartas,
-            onCheckedMostrarCartas = {
+            cambiarOcultarCartas = {
                 ocultarCartas = it
-            })
-        UIPlayers(
-            manoJugador1, manoIA, valorJugador1, valorIA,
-            changeJugador1haTerminado = {
-                jugador1haTerminado = true
-            }, changeJugador2haTerminado = {
-                IAhaTerminado = true
-            }, jugador1haTerminado, IAhaTerminado, ocultarCartas
+            },
+            viewModel1vsIA,nombreJ1
         )
-        BotonReiniciar(jugador1haTerminado, IAhaTerminado,
-            onClickReiniciar = {
-                baraja.borrarBaraja()
-                valorJugador1 = 0
-                valorIA = 0
-                manoJugador1.clear()
-                manoIA.clear()
-                textoTurno = ""
-                estadoBotones = true
-                jugador1haPasado = false
-                IAhaPasado = false
-                estadoActual = null
-                jugador1haTerminado = false
-                IAhaTerminado = false
+        DialogInstrucciones(
+            showDialogInstrucciones = showDialogInstrucciones,
+            cambiarShowDialogInstrucciones = {
+                showDialogInstrucciones = !showDialogInstrucciones
             })
+
+
+
+
+    }
+}
+
+
+@Composable
+private fun ManoJugador1(handP1: List<Carta>, refreshPlayerCards: Boolean) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(-100.dp)
+    ) {
+        items(handP1) {
+            CrearImagen(foto = it.IdDrawable)
+        }
     }
 }
 
 @Composable
-private fun ControlarTurnoIA(
-    jugador1haTerminado: Boolean,
-    IAhaTerminado: Boolean,
-    cambiarEstadoBoton: () -> Unit,
-    estadoActual: String?,
-    cambiarTextoTurno: (String) -> Unit,
-    jugador1haPasado: Boolean,
-    IAhaPasado: Boolean,
-    valorJugador1: Int,
-    valorIA: Int,
-    baraja: Baraja.Companion,
-    estado: MutableList<String>,
-    sumarValorIA: (Carta) -> Unit,
-    cambiarManoIA: (Carta) -> Unit,
-    IAPasa: () -> Unit,
-    changeIAhaTerminado : () -> Unit
-
-
+private fun ManoJugador2(
+    handP2: List<Carta>,
+    refreshPlayerCards: Boolean,
+    ocultarCartas: Boolean,
+    J1HaTerminado: Boolean,
+    J2HaTerminado: Boolean
 ) {
-    if (jugador1haTerminado && IAhaTerminado) {
-        if (jugador1haPasado && !IAhaPasado) {
-            TextoFinal("La partida ha finalizado. Ha ganado el jugador 1.")
-        } else if (!jugador1haPasado && IAhaPasado) {
-            TextoFinal("La partida ha finalizado. Ha ganado la IA.")
-        } else if (jugador1haPasado && IAhaPasado) {
-            if (valorJugador1 < valorIA) {
-                TextoFinal("La partida ha finalizado. Ha ganado la IA.")
-            } else if (valorJugador1 == valorIA) {
-                TextoFinal("Empate.")
-            } else {
-                TextoFinal("La partida ha finalizado. Ha ganado el jugador 1.")
+    if (!ocultarCartas || (J1HaTerminado && J2HaTerminado)) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(-100.dp)
+        ) {
+            items(handP2) {
+                CrearImagen(foto = it.IdDrawable)
             }
-        } else {
-            TextoFinal("La partida ha finalizado. No ha ganado nadie.")
         }
-        cambiarTextoTurno("Partida finalizada")
-        cambiarEstadoBoton()
-    } else if ((estadoActual == "TJ1" && !jugador1haTerminado) || estadoActual == null || (estadoActual == "TJ2" && IAhaTerminado)) {
-        cambiarTextoTurno("Turno: Jugador 1")
-    } else if (estadoActual == "TJ2" || (estadoActual == "TJ1" && jugador1haTerminado)) {
-        cambiarTextoTurno("Turno: IA")
-    }
-    ////
-    if (estadoActual == "TJ2") {
-        if (valorJugador1 > 21) {
-            IAPasa()
-        }
-        if (valorIA >= 17) {
-            IAPasa()
-        }
-        if (valorIA < 17) {
-            val ultimaCarta = baraja.dameCarta()
-            cambiarManoIA(ultimaCarta)
-            if (!jugador1haTerminado) {
-                com.acasloa946.blackjack.userInterface.estadoActual = estado[0]
+    } else if (ocultarCartas) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(-100.dp)
+        ) {
+            items(handP2) {
+                CrearImagen(foto = R.drawable.facedown)
             }
-            sumarValorIA(ultimaCarta)
         }
-        if (valorIA > 21) {
-            changeIAhaTerminado()
-        }
-
     }
 
 }
 
 @Composable
-private fun ImagenJugador(foto: Int) {
+private fun CrearImagen(foto: Int) {
     Image(
         painter = painterResource(id = foto),
         contentDescription = null,
-        modifier = Modifier.size(100.dp)
+        modifier = Modifier.size(150.dp)
     )
 }
 
 @Composable
-private fun RowBotonesJugadores(
-    onClickPedir: () -> Unit, botonEstado: Boolean,
-    onClickPasar: () -> Unit,
-) {
+private fun RowBotonesJugadores(viewModel1vs1: PvsIAViewModel) {
     Row(
-        Modifier.padding(bottom = 10.dp)
     ) {
         Button(
             shape = RectangleShape,
             onClick = {
-                onClickPedir()
+                viewModel1vs1.getCard()
             },
             colors = ButtonDefaults.buttonColors(Color.Red),
-            enabled = botonEstado
         ) {
             Text(
                 text = "Pedir", textAlign = TextAlign.Center, color = Color.Black
             )
 
         }
-        Spacer(modifier = Modifier.padding(10.dp))
+        Spacer(modifier = Modifier.padding(3.dp))
         Button(
             shape = RectangleShape,
-            onClick = { onClickPasar() },
-            colors = ButtonDefaults.buttonColors(Color.Red),
-            enabled = botonEstado
+            onClick = { viewModel1vs1.jugadorPasa() },
+            colors = ButtonDefaults.buttonColors(Color.Red)
         ) {
             Text(
                 text = "Pasar", textAlign = TextAlign.Center, color = Color.Black
@@ -329,154 +221,198 @@ private fun RowBotonesJugadores(
 }
 
 @Composable
-private fun UIPlayers(
-    manoJugador1: MutableList<Carta>,
-    manoJugador2: MutableList<Carta>,
-    valorJugador1: Int,
-    valorJugador2: Int,
-    changeJugador1haTerminado: () -> Unit,
-    changeJugador2haTerminado: () -> Unit,
-    jugador1haTerminado: Boolean,
-    IAhaTerminado: Boolean,
-    ocultarCartas: Boolean
-
+private fun TextoValor(
+    viewModel1vs1: PvsIAViewModel,
+    player: Int,
+    handP1: List<Carta>,
+    handP2: List<Carta>,
+    ocultarCartas: Boolean,
+    J1HaTerminado: Boolean,
+    J2HaTerminado: Boolean
 ) {
-    //jugador 1
-    if (manoJugador1.isNotEmpty()) {
-        TextoJugador(string = "1")
-    }
-    //
-    LazyRow {
-        items(manoJugador1) { carta ->
-            ImagenJugador(foto = carta.IdDrawable)
-        }
-    }
-    if (manoJugador1.size > 4) {
-        Row(modifier = Modifier.padding(top = 10.dp)) {
-            for (i in 4 until manoJugador1.size) {
-                ImagenJugador(foto = manoJugador1[i].IdDrawable)
-            }
-        }
-    }
-    if (manoJugador1.isNotEmpty()) {
-            TextoValor(valorJugador1, cambiarEstadoJugador = {
-                if (valorJugador1 > 21) {
-                    changeJugador1haTerminado()
-                }
-                //hay q borrar esto y cambiarlo en la función de la screen 1vs1
-            })
-    }
+    val valorJ1: Int by viewModel1vs1.valorJ1.observeAsState(initial = 0)
+    val valorJ2: Int by viewModel1vs1.valorJ2.observeAsState(initial = 0)
 
-
-    //jugador2
-    Spacer(modifier = Modifier.padding(10.dp))
-    if (manoJugador2.isNotEmpty()) {
-        TextoJugador(string = "2")
-    }
-    if (!ocultarCartas || (jugador1haTerminado && IAhaTerminado)) {
-        LazyRow {
-            items(manoJugador2) { carta ->
-                ImagenJugador(foto = carta.IdDrawable)
-            }
-        }
-        if (manoJugador2.size > 4) {
-            Row(modifier = Modifier.padding(top = 10.dp)) {
-                for (i in 4 until manoJugador2.size) {
-                    ImagenJugador(foto = manoJugador2[i].IdDrawable)
-                }
-            }
-        }
-    } else if (ocultarCartas) {
-        LazyRow {
-            items(manoJugador2) { _ ->
-                ImagenJugador(foto = R.drawable.facedown)
-            }
-        }
-        if (manoJugador2.size > 4) {
-            Row(modifier = Modifier.padding(top = 10.dp)) {
-                for (i in 4 until manoJugador2.size) {
-                    ImagenJugador(foto = R.drawable.facedown)
-                }
-            }
-        }
-    }
-
-    if (manoJugador2.isNotEmpty()) {
-        if (!ocultarCartas) {
-            TextoValor(valorJugador2, cambiarEstadoJugador = {
-                //hay q borrar esto y cambiarlo en la función de la screen 1vs1
-            })
-        }
-    }
-
-}
-
-@Composable
-fun Opciones(
-    manoJugador1: MutableList<Carta>,
-    manoJugador2: MutableList<Carta>,
-    cambiarShowDialog: () -> Unit
-
-) {
-
-
-    if (manoJugador1.isEmpty() && manoJugador2.isEmpty()) {
-
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(30.dp)
-        ) {
-            Button(
-                shape = RectangleShape,
-                onClick = {
-                    cambiarShowDialog()
-                },
-                colors = ButtonDefaults.buttonColors(Color.Red)
-            ) {
+    if (handP1.isNotEmpty() || handP2.isNotEmpty()) {
+        if (player == 1) {
+            Text(
+                text = "Valor: $valorJ1",
+                fontSize = 20.sp,
+                fontFamily = FontFamily.Monospace,
+                color = Color.White,
+                modifier = Modifier.padding(top = 10.dp, bottom = 10.dp),
+                fontStyle = FontStyle.Italic
+            )
+        } else {
+            if (!ocultarCartas || (J1HaTerminado && J2HaTerminado)) {
                 Text(
-                    text = "Opciones", textAlign = TextAlign.Center, color = Color.Black
+                    text = "Valor: $valorJ2",
+                    fontSize = 20.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.White,
+                    modifier = Modifier.padding(top = 10.dp, bottom = 10.dp),
+                    fontStyle = FontStyle.Italic
                 )
-
             }
+        }
+
+    }
+}
+
+@Composable
+private fun TextoTurno(viewModel1vs1: PvsIAViewModel, refreshTxtTurno: Boolean) {
+    Text(
+        text = viewModel1vs1.controlTxtTurno(),
+        fontSize = 20.sp,
+        fontFamily = FontFamily.Monospace,
+        color = Color.White,
+        modifier = Modifier.padding(top = 15.dp, bottom = 15.dp),
+        fontStyle = FontStyle.Italic
+    )
+}
+
+@Composable
+private fun BotonReiniciar(
+    viewModel1vs1: PvsIAViewModel,
+    J1HaTerminado: Boolean,
+    J2HaTerminado: Boolean
+) {
+
+    val mostrar = true
+    val mensajeFinal: String by viewModel1vs1.mensajeFinal.observeAsState(initial = "")
 
 
+    if (J1HaTerminado && J2HaTerminado && mostrar) {
+        viewModel1vs1.msjToastFinal()
+        TextoFinal(mensajeFinal)
+        Button(
+            shape = RectangleShape,
+            onClick = {
+                viewModel1vs1.reiniciar()
+            },
+            colors = ButtonDefaults.buttonColors(Color.Red)
+        ) {
+            Text(
+                text = "Reiniciar", textAlign = TextAlign.Center, color = Color.Black
+            )
         }
     }
 }
 
 @Composable
-fun DialogOpciones(
-    showDialog: Boolean,
-    cambiarShowDialog: () -> Unit,
-    mostrarCartas: Boolean,
-    onCheckedMostrarCartas: (Boolean) -> Unit
+private fun TextoJugador(
+    player: Int,
+    handP1: List<Carta>,
+    handP2: List<Carta>,
+    nombreP1: String,
+    nombreP2: String
+) {
+    if (handP1.isNotEmpty() || handP2.isNotEmpty()) {
+        if (player == 1) {
+            Text(
+                text = nombreP1,
+                fontSize = 25.sp,
+                fontFamily = FontFamily.Monospace,
+                color = Color.White,
+                modifier = Modifier.padding(top = 15.dp, bottom = 15.dp),
+                fontStyle = FontStyle.Italic
+            )
+        } else {
+            Text(
+                text = nombreP2,
+                fontSize = 25.sp,
+                fontFamily = FontFamily.Monospace,
+                color = Color.White,
+                modifier = Modifier.padding(top = 15.dp, bottom = 15.dp),
+                fontStyle = FontStyle.Italic
+            )
+        }
+    }
+}
+
+@Composable
+private fun TextoFinal(string: String) {
+    val context = LocalContext.current
+    Toast.makeText(context, string, Toast.LENGTH_SHORT).show()
+}
+
+@Composable
+private fun BotonOpcionesInstrucciones(
+    handP1: List<Carta>,
+    handP2: List<Carta>,
+    cambiarShowDialogOpciones: () -> Unit,
+    cambiarShowDialogInstrucciones: () -> Unit
+) {
+    if (handP1.isEmpty() && handP2.isEmpty()) {
+        Button(
+            shape = RectangleShape,
+            modifier = Modifier.size(width = 175.dp, height = 40.dp),
+            onClick = { cambiarShowDialogOpciones() },
+            colors = ButtonDefaults.buttonColors(Color.Red)
+        ) {
+            Text(text = "Opciones", textAlign = TextAlign.Center, color = Color.Black)
+        }
+        Spacer(modifier = Modifier.padding(8.dp))
+        Button(
+            shape = RectangleShape,
+            modifier = Modifier.size(width = 175.dp, height = 40.dp),
+            onClick = { cambiarShowDialogInstrucciones()},
+            colors = ButtonDefaults.buttonColors(Color.Red)
+        ) {
+            Text(text = "Instrucciones", textAlign = TextAlign.Center, color = Color.Black)
+        }
+    }
+}
+
+@Composable
+private fun DialogOpciones(
+    showDialogOpciones: Boolean,
+    cambiarShowDialogOpciones: () -> Unit,
+    ocultarCartas: Boolean,
+    cambiarOcultarCartas: (Boolean) -> Unit,
+    viewModel1vsIA: PvsIAViewModel,
+    nombreP1: String,
 ) {
 
-    if (showDialog) {
-        Dialog(onDismissRequest = { cambiarShowDialog() }) {
+
+
+    if (showDialogOpciones) {
+        Dialog(onDismissRequest = { cambiarShowDialogOpciones() }) {
             Column(
                 modifier = Modifier
-                    .background(Color.Black)
+                    .background(Color.LightGray)
                     .padding(top = 10.dp, bottom = 10.dp)
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Esconder cartas de IA",
-                    color = Color.White
+                    text = "Opciones",
+                    fontSize = 25.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Text(
+                    text = "Esconder cartas",
+                    color = Color.Black
                 )
                 Checkbox(
-                    checked = mostrarCartas, onCheckedChange = {
-                        onCheckedMostrarCartas(it)
+                    checked = ocultarCartas, onCheckedChange = {
+                        cambiarOcultarCartas(it)
                     },
                     colors = CheckboxDefaults.colors(Color.Red)
                 )
+                Text(
+                    text = "Nombre",
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 5.dp)
+                )
+                OutlinedJ1(nombreP1, viewModel1vsIA)
                 Button(
                     shape = RectangleShape,
                     onClick = {
-                        cambiarShowDialog()
+                        cambiarShowDialogOpciones()
                     },
                     colors = ButtonDefaults.buttonColors(Color.Red)
                 ) {
@@ -490,4 +426,54 @@ fun DialogOpciones(
     }
 }
 
- */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OutlinedJ1(nombreP1: String, viewModel1vs1: PvsIAViewModel) {
+    OutlinedTextField(
+        value = nombreP1,
+        onValueChange = { viewModel1vs1.cambiarNombreP1(it) },
+        modifier = Modifier
+            .padding(8.dp),
+        label = {
+            Text(
+                text = "Introduce tu apodo",
+                color = Color.Black
+            )
+        },
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = Color.Red
+        )
+    )
+}
+
+
+@Composable
+private fun DialogInstrucciones(showDialogInstrucciones: Boolean,
+                        cambiarShowDialogInstrucciones: () -> Unit,) {
+    if (showDialogInstrucciones) {
+        Dialog(onDismissRequest = { cambiarShowDialogInstrucciones() }) {
+            Column(
+                modifier = Modifier
+                    .background(Color.LightGray)
+                    .padding(15.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Blackjack",
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.Black,
+                    modifier = Modifier.padding(top = 10.dp, bottom = 10.dp),
+                    fontStyle = FontStyle.Italic
+                )
+                Text(text = "En el juego del Blackjack, te enfrentas cara a cara en un apasionante duelo 1 contra 1. El objetivo es simple pero desafiante: alcanzar una mano con un valor total lo más cercano posible a 21 sin pasarte. Comienzas sin cartas y decides si pides más cartas para mejorar tu mano o te plantas con lo que tienes. Cada carta numérica tiene su valor nominal y las figuras valen 10.\n" +
+                        "\n" +
+                        "La estrategia es clave; debes calcular tus posibilidades y evaluar la mano del contrario. ¡Pero cuidado! Pasar de 21 resulta en una derrota automática.",
+                    modifier = Modifier.padding(5.dp))
+            }
+        }
+    }
+
+}

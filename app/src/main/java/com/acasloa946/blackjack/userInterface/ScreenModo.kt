@@ -34,7 +34,7 @@ fun PantallaModo(NavController: NavController) {
             .fillMaxSize()
             .paint(
                 painterResource(id = R.drawable.mat),
-                contentScale = ContentScale.FillHeight
+                contentScale = ContentScale.FillWidth
             ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
