@@ -48,6 +48,11 @@ import androidx.navigation.NavController
 import com.acasloa946.blackjack.data.Carta
 import com.acasloa946.blackjack.R
 
+
+/**
+ * @author: Álvaro Castilla
+ * Funcion principal de la Screen1vs1
+ */
 @SuppressLint("MutableCollectionMutableState")
 @Composable
 fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
@@ -67,11 +72,7 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
     val nombreJ2: String by viewModel1vs1.nombreP2.observeAsState(initial = "Jugador 2")
     var showDialogInstrucciones: Boolean by rememberSaveable { mutableStateOf(false) }
 
-
-
-
-
-
+    //Columna principal de la Screen
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -81,13 +82,21 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        //llamada a controlar el turno (se ejecuta siempre que se refresca la pantalla)
         viewModel1vs1.controlTurno()
+        //llamada a controlar el TxtTurno (se ejecuta siempre que se refresca la pantalla)
         viewModel1vs1.controlTxtTurno()
+        //text de turno
         TextoTurno(viewModel1vs1, refreshTxtTurno)
+        //row de botones para pedir y pasar.
         RowBotonesJugadores(viewModel1vs1)
+        //Espaciador
         Spacer(modifier = Modifier.padding(bottom = 15.dp))
+        //Texto para mostrar nombre J1
         TextoJugador(player = 1, handP1, handP2, nombreJ1, nombreJ2)
+        //LazyRow para mostrar cartas de J1
         ManoJugador1(handP1, refreshPlayerCards)
+        //Muestra valor J1
         TextoValor(
             viewModel1vs1 = viewModel1vs1,
             player = 1,
@@ -97,7 +106,9 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
             J1HaTerminado,
             J2HaTerminado
         )
+        //Texto para mostrar nombre J1
         TextoJugador(2, handP1, handP2, nombreJ1, nombreJ2)
+        //LazyRow para mostrar cartas de J1
         ManoJugador2(
             handP2 = handP2,
             refreshPlayerCards = refreshPlayerCards,
@@ -105,6 +116,7 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
             J1HaTerminado,
             J2HaTerminado
         )
+        //Muestra valor J2
         TextoValor(
             viewModel1vs1 = viewModel1vs1,
             player = 2,
@@ -114,6 +126,7 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
             J1HaTerminado,
             J2HaTerminado
         )
+        //Boton reiniciar -> solo se muestra cuando la partida ha terminado.
         BotonReiniciar(
             viewModel1vs1 = viewModel1vs1,
             J1HaTerminado,
@@ -127,12 +140,14 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
                 apuestaJugador2 = it
             }
         )
+        //Botones de opciones e instrucciones -> solo se muestra cuando la partida no ha iniciado.
         BotonOpcionesInstrucciones(handP1 = handP1, handP2 = handP2, cambiarShowDialogOpciones = {
             showDialogOpciones = !showDialogOpciones
         },
             cambiarShowDialogInstrucciones = {
                 showDialogInstrucciones = !showDialogInstrucciones
             })
+        //Dialog de las opciones -> solo se muestra cuando se pulsa el botón Opciones.
         DialogOpciones(
             showDialogOpciones = showDialogOpciones, cambiarShowDialogOpciones = {
                 showDialogOpciones = !showDialogOpciones
@@ -146,6 +161,7 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
             },
             refreshApuestas, nombreJ1, nombreJ2
         )
+        //Dialog de las instrucciones -> solo se muestra cuando se pulsa el botón instrucciones.
         DialogInstrucciones(
             showDialogInstrucciones = showDialogInstrucciones,
             cambiarShowDialogInstrucciones = {
@@ -156,7 +172,11 @@ fun Pantalla1vs1(NavController: NavController, viewModel1vs1: ViewModel1vs1) {
     }
 }
 
-
+/**
+ * Función para mostrar la mano del jugador 1.
+ * @param handP1: Mano del jugador 1. Variable del viewmodel1vs1.
+ * @param refreshPlayerCards: boolean para refrescar el LazyRow
+ */
 @Composable
 private fun ManoJugador1(handP1: List<Carta>, refreshPlayerCards: Boolean) {
     LazyRow(
@@ -168,6 +188,14 @@ private fun ManoJugador1(handP1: List<Carta>, refreshPlayerCards: Boolean) {
     }
 }
 
+/**
+ * Función para mostrar la mano del jugador 2.
+ * @param handP2: Mano del jugador 2. Variable del viewmodel1vs1.
+ * @param refreshPlayerCards: boolean para refrescar el LazyRow. Variable del viewmodel1vs1.
+ * @param ocultarCartas: boolean que se cambia en el Dialog de las opciones.
+ * @param J1HaTerminado: boolean para saber si el J1HaTerminado. Variable del viewmodel1vs1.
+ * @param J2HaTerminado: boolean para saber si el J2HaTerminado. Variable del viewmodel1vs1.
+ */
 @Composable
 private fun ManoJugador2(
     handP2: List<Carta>,
@@ -176,6 +204,7 @@ private fun ManoJugador2(
     J1HaTerminado: Boolean,
     J2HaTerminado: Boolean
 ) {
+    //si no se quieren ocultar las cartas se muestran las de la mano del J2.
     if (!ocultarCartas || (J1HaTerminado && J2HaTerminado)) {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(-100.dp)
@@ -184,7 +213,8 @@ private fun ManoJugador2(
                 CrearImagen(foto = it.IdDrawable)
             }
         }
-    } else if (ocultarCartas) {
+    } //si se ocultan, se muestra la carta boca abajo.
+    else if (ocultarCartas) {
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(-100.dp)
         ) {
@@ -196,6 +226,9 @@ private fun ManoJugador2(
 
 }
 
+/**
+ * Función para pintar la imagen
+ */
 @Composable
 private fun CrearImagen(foto: Int) {
     Image(
@@ -205,6 +238,10 @@ private fun CrearImagen(foto: Int) {
     )
 }
 
+/**
+ * Función que muestran los botones de pasar y pedir carta.
+ * @param viewModel1vs1
+ */
 @Composable
 private fun RowBotonesJugadores(viewModel1vs1: ViewModel1vs1) {
     Row(
@@ -234,6 +271,15 @@ private fun RowBotonesJugadores(viewModel1vs1: ViewModel1vs1) {
     }
 }
 
+/**
+ * Función para mostrar el valor de las cartas de los jugadores.
+ * @param player: Int para saber el jugador y mostrar su valor.
+ * @param handP1: Mano del jugador 1. Variable del viewmodel1vs1.
+ * @param handP2: Mano del jugador 2. Variable del viewmodel1vs1.
+ * @param ocultarCartas: boolean que se cambia en el Dialog de las opciones.
+ * @param J1HaTerminado: boolean para saber si el J1HaTerminado. Variable del viewmodel1vs1.
+ * @param J2HaTerminado: boolean para saber si el J2HaTerminado. Variable del viewmodel1vs1.
+ */
 @Composable
 private fun TextoValor(
     viewModel1vs1: ViewModel1vs1,
@@ -246,7 +292,7 @@ private fun TextoValor(
 ) {
     val valorJ1: Int by viewModel1vs1.valorJ1.observeAsState(initial = 0)
     val valorJ2: Int by viewModel1vs1.valorJ2.observeAsState(initial = 0)
-
+    //se muestra cuando no se han sacado cartas.
     if (handP1.isNotEmpty() || handP2.isNotEmpty()) {
         if (player == 1) {
             Text(
@@ -273,6 +319,11 @@ private fun TextoValor(
     }
 }
 
+/**
+ * Función de Text para mostrar el turno actual.
+ * @param viewModel1vs1
+ * @param refreshTxtTurno: Boolean para refrescar el texto.
+ */
 @Composable
 private fun TextoTurno(viewModel1vs1: ViewModel1vs1, refreshTxtTurno: Boolean) {
     Text(
@@ -285,6 +336,16 @@ private fun TextoTurno(viewModel1vs1: ViewModel1vs1, refreshTxtTurno: Boolean) {
     )
 }
 
+/**
+ * Función para mostrar el botón reiniciar y controlarlo.
+ * @param viewModel1vs1
+ * @param J1HaTerminado: boolean para saber si el J1HaTerminado. Variable del viewmodel1vs1.
+ * @param J2HaTerminado: boolean para saber si el J2HaTerminado. Variable del viewmodel1vs1.
+ * @param apuestaJugador1:
+ * @param apuestaJugador2:
+ * @param changeApuesta1: función lambda para cambiar la varibale apuesta1
+ * @param changeApuesta2: función lambda para cambiar la varibale apuesta2
+ */
 @Composable
 private fun BotonReiniciar(
     viewModel1vs1: ViewModel1vs1,
@@ -310,8 +371,6 @@ private fun BotonReiniciar(
                 viewModel1vs1.reiniciar()
                 changeApuesta1(0f)
                 changeApuesta2(0f)
-
-
             },
             colors = ButtonDefaults.buttonColors(Color.Red)
         ) {
@@ -322,6 +381,14 @@ private fun BotonReiniciar(
     }
 }
 
+/**
+ * Función para mostrar nombre jugador.
+ * @param player: Int para saber el jugador y mostrar su valor.
+ * @param handP1: Mano del jugador 1. Variable del viewmodel1vs1.
+ * @param handP2: Mano del jugador 2. Variable del viewmodel1vs1.
+ * @param nombreP1: nombre del J1. Variable del viewmodel1vs1.
+ * @param nombreP2: nombre del J2. Variable del viewmodel1vs1.
+ */
 @Composable
 private fun TextoJugador(
     player: Int,
@@ -353,12 +420,20 @@ private fun TextoJugador(
     }
 }
 
+
+/**
+ * Función para mostrar toast indicando ganador al final
+ * @param string: mensaje que se muestra.
+ */
 @Composable
 private fun TextoFinal(string: String) {
     val context = LocalContext.current
     Toast.makeText(context, string, Toast.LENGTH_SHORT).show()
 }
 
+/**
+ * Función para mostrar los botones de opciones e instrucciones.
+ */
 @Composable
 private fun BotonOpcionesInstrucciones(
     handP1: List<Carta>,
@@ -387,6 +462,9 @@ private fun BotonOpcionesInstrucciones(
     }
 }
 
+/**
+ * Función que pinta el Dialog de las opciones.
+ */
 @Composable
 private fun DialogOpciones(
     showDialogOpciones: Boolean,
@@ -483,6 +561,10 @@ private fun DialogOpciones(
     }
 }
 
+
+/**
+ * Función que controla el OutlinedTextField para cambiar el nombre del J1.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OutlinedJ1(nombreP1: String, viewModel1vs1: ViewModel1vs1) {
@@ -503,6 +585,10 @@ private fun OutlinedJ1(nombreP1: String, viewModel1vs1: ViewModel1vs1) {
     )
 }
 
+
+/**
+ * Función que controla el OutlinedTextField para cambiar el nombre del J2.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OutlinedJ2(nombreP2: String, viewModel1vs1: ViewModel1vs1) {
@@ -523,6 +609,10 @@ private fun OutlinedJ2(nombreP2: String, viewModel1vs1: ViewModel1vs1) {
     )
 }
 
+
+/**
+ * Función que muestra el Dialog de las instrucciones.
+ */
 @Composable
 private fun DialogInstrucciones(showDialogInstrucciones: Boolean,
                         cambiarShowDialogInstrucciones: () -> Unit,) {

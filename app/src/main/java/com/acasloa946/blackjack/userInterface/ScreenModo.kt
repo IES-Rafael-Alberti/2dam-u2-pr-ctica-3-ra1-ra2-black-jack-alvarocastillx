@@ -27,6 +27,9 @@ import com.acasloa946.blackjack.R
 import com.acasloa946.blackjack.routes.Routes
 
 
+/**
+ * Screen de la pantalla del modo
+ */
 @Composable
 fun PantallaModo(NavController: NavController) {
     Column(
@@ -71,6 +74,9 @@ fun PantallaModo(NavController: NavController) {
     }
 }
 
+/**
+ * Función para mostrar título
+ */
 @Composable
 fun TextoTitulo() {
     Text(text = "BlackJack",

@@ -7,5 +7,4 @@ class Jugador(mano: MutableLiveData<MutableList<Carta>>, fichas: Float?, nombre:
     var Fichas = fichas
     var Nombre = nombre
 
-    constructor():this(MutableLiveData<MutableList<Carta>>(),0f,"")
 }

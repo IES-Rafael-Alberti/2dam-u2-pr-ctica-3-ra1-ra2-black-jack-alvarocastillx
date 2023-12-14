@@ -8,6 +8,31 @@ import com.acasloa946.blackjack.data.Baraja
 import com.acasloa946.blackjack.data.Carta
 import com.acasloa946.blackjack.data.Jugador
 
+/**
+ * @author: Álvaro Castilla Loaiza
+ * Clase viewmodel que controla la Screen1VS1.
+ * @property Baraja: objeto baraja.
+ * @property _player1: objeto jugador1.
+ * @property _player2: objeto jugador2.
+ * @property _nombreP1: nombre jugador1.
+ * @property _nombreP2: nombre jugador1.
+ * @property _handP1: mano de jugador1.
+ * @property _handP2: mano de jugador2.
+ * @property _refreshPlayerCards: boolean para refrescar las cartas en LazyRow.
+ * @property _refreshTxtTurno: boolean para refrescar texto de turno.
+ * @property _estadoJ1: boolean -> true si es su turno, false si no.
+ * @property _estadoJ2: boolean -> true si es su turno, false si no.
+ * @property _J1HaTerminado: boolean -> true si ha terminado, false si no.
+ * @property _J2HaTerminado: boolean -> true si ha terminado, false si no.
+ * @property _J1HaPasado: boolean -> true si ha pasado, false si no.
+ * @property _J2HaPasado: boolean -> true si ha pasado, false si no.
+ * @property _valorJ1: valor de la mano del jugador1.
+ * @property _valorJ2: valor de la mano del jugador2.
+ * @property _mensajeFinal: mensaje final que se escribe en un toast cuando la partida acaba.
+ * @property _ptsJ1: puntos actuales del J1.
+ * @property _ptsJ2: puntos actuales del J2.
+ * @property _refreshApuestas: boolean para refrescar apuestas en DialogOpciones (mirar en Screen1VS1).
+ */
 class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
 
     private val baraja = Baraja
@@ -67,6 +92,7 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
 
 
 
+// Inicializa las siguientes variables cuando se entra en la Screen
 
     init {
         baraja.crearBaraja()
@@ -92,59 +118,84 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
 
     }
 
+    /**
+     * Función para pedir carta y añadirla a la mano.
+     */
     fun getCard() {
+        //devuelve carta
         val card = baraja.dameCarta()
+        //si es el turno del J1 se le añade la carta a su mano.
         if (_estadoJ1.value == true) {
             _handP1.value?.add(card)
-        } else if (_estadoJ2.value == true) {
+        }
+        //si no se añade a la mano del J2.
+        else if (_estadoJ2.value == true) {
             _handP2.value?.add(card)
 
         }
         _refreshPlayerCards.value = false
+        //se refresca la lazyRow y el texto del valor de cada jugador.
         refrescarCartas()
         calcularTxtValor()
     }
-
+    /**
+     * @author: Diego Cano
+     * Función para refrescar la LazyRow y que se pinten las cartas que estan en cada mano
+     */
     fun refrescarCartas() {
         _refreshPlayerCards.value = !_refreshPlayerCards.value!!
     }
 
+    /**
+     * Función para refrescar el Text que muestra el turno actual.
+     */
     fun refrescarTxtTurno() {
         _refreshTxtTurno.value = !_refreshTxtTurno.value!!
     }
-
+    /**
+     * Función para refrescar los slider de las apuestas.
+     */
     fun refrescarApuestas() {
         _refreshApuestas.value = !_refreshApuestas.value!!
 
     }
 
+    /**
+     * Función para controlar el turno en cada momento.
+     */
     fun controlTurno() {
-
+        //si el valor de la mano del J1 es mayor a 21 o ha pasado, deja de jugar (_J1HaTerminado = true)
         if (valorJ1.value!! > 21 || _J1HaPasado.value == true) {
             _J1HaTerminado.value = true
         }
+        //si el valor de la mano del J2 es mayor a 21 o ha pasado, deja de jugar (_J2HaTerminado = true)
         if (valorJ2.value!! > 21 || _J2HaPasado.value == true) {
             _J2HaTerminado.value = true
         }
+        //si el J1 ha terminado no puede tener turno.
         if (_J1HaTerminado.value == true) {
             _estadoJ1.value = false
         }
+        //si el J2 ha terminado no puede tener turno.
         if (_J2HaTerminado.value == true) {
             _estadoJ2.value = false
         }
-
-
+        //controla estado inicial -> ambas manos estan vacías.
         if (_handP1.value?.isEmpty()!! && _handP2.value?.isEmpty()!!) {
             _estadoJ1.value = true
             _estadoJ2.value = false
-        } else if (_estadoJ1.value == false && _J1HaTerminado.value == true && _J2HaTerminado.value == false) {
+        } //si el J1 ha terminado y el J2 no, es turno del J2.
+        else if (_estadoJ1.value == false && _J1HaTerminado.value == true && _J2HaTerminado.value == false) {
             _estadoJ2.value = true
-        } else if (_estadoJ2.value == false && _J2HaTerminado.value == true && _J1HaTerminado.value == false) {
+        } //si el J2 ha terminado y el J1 no, es turno del J1.
+        else if (_estadoJ2.value == false && _J2HaTerminado.value == true && _J1HaTerminado.value == false) {
             _estadoJ1.value = true
-        } else if (_estadoJ1.value == true && _J2HaTerminado.value == false) {
+        } //si es turno de J1 y el J2 no ha terminado, cuando se llame a pedir carta se cambiara de turno.
+        else if (_estadoJ1.value == true && _J2HaTerminado.value == false) {
             _estadoJ1.value = false
             _estadoJ2.value = true
-        } else if (_estadoJ2.value == true && _J1HaTerminado.value == false) {
+        } //si es turno de J2 y el J1 no ha terminado, cuando se llame a pedir carta se cambiara de turno.
+        else if (_estadoJ2.value == true && _J1HaTerminado.value == false) {
             _estadoJ1.value = true
             _estadoJ2.value = false
         } else if (_estadoJ1.value == true && _J2HaTerminado.value == true) {
@@ -155,7 +206,9 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
             _estadoJ2.value = true
         }
     }
-
+    /**
+     * Función para calcular los valores de cada mano
+     */
     fun calcularTxtValor() {
         _valorJ1.value = 0
         _valorJ2.value = 0
@@ -167,6 +220,9 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Función para controlar el Text del turno.
+     */
     fun controlTxtTurno(): String {
         if (_estadoJ1.value == true && _estadoJ2.value == false) {
             return "Turno -> ${_nombreP1.value}"
@@ -176,22 +232,27 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
         return "Partida finalizada"
     }
 
+    /**
+     * Función para controlar cuando un jugador pasa.
+     */
     fun jugadorPasa() {
+        //si pasa el J1 y el J2 no ha terminado, turno de J2
         if (_estadoJ1.value == true && (_J2HaTerminado.value == false || _J2HaPasado.value==true)) {
             _J1HaPasado.value = true
             _estadoJ2.value = true
             _estadoJ1.value = false
 
-        } else if (_estadoJ2.value == true && (_J1HaTerminado.value == false || _J1HaPasado.value==true)) {
+        } //si pasa el J2 y el J1 no ha terminado, turno de J1
+        else if (_estadoJ2.value == true && (_J1HaTerminado.value == false || _J1HaPasado.value==true)) {
             _J2HaPasado.value = true
             _estadoJ1.value = true
             _estadoJ2.value = false
-        }
+        } //si pasa el J1 y el J2 ha terminado, termina.
         else if (_estadoJ1.value == true && _J2HaTerminado.value == true) {
             _J1HaPasado.value = true
             _estadoJ1.value = false
             _estadoJ2.value = false
-        }
+        } //si pasa el J2 y el J1 ha terminado, termina.
         else if (_estadoJ2.value == true && _J1HaTerminado.value == true) {
             _J2HaPasado.value = true
             _estadoJ1.value = false
@@ -200,6 +261,9 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
         refrescarTxtTurno()
     }
 
+    /**
+     * Función asociada al botón reiniciar (mirar Screen1VSIA). Reinicia partida cuando esta ha terminado.
+     */
     fun reiniciar() {
         _estadoJ1.value = true
         _estadoJ2.value = false
@@ -221,6 +285,9 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
         _player2.value = Jugador(_handP2,_ptsJ2.value,_nombreP2.value.toString())
     }
 
+    /**
+     * Función que cambia el _mensajeFinal para dar ganador.
+     */
     fun msjToastFinal() {
         if (_J1HaTerminado.value == true && _J2HaTerminado.value == true) {
             if (_J1HaPasado.value==true && _J2HaPasado.value==true) {
@@ -247,6 +314,9 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
 
     }
 
+    /**
+     *  Función que se ejecuta cuando se termina la partida y controla las fechas.
+     */
      fun controlFichas(apuestaJugador1:Float,apuestaJugador2: Float) {
         if (_mensajeFinal.value == "Ha ganado ${_nombreP1.value}") {
             _ptsJ1.value = _player1.value!!.Fichas?.plus(apuestaJugador2)
@@ -261,10 +331,18 @@ class ViewModel1vs1(application: Application) : AndroidViewModel(application) {
         refrescarApuestas()
 
     }
+
+    /**
+     * Función para cambiar el nombre del J1 (mirar DialogOpciones en Screen1VS1)
+     */
+
     fun cambiarNombreP1(nombreP1:String) {
         _nombreP1.value = nombreP1
     }
 
+    /**
+     * Función para cambiar el nombre del J2 (mirar DialogOpciones en Screen1VS1)
+     */
     fun cambiarNombreP2(nombreP2:String) {
         _nombreP2.value = nombreP2
     }
