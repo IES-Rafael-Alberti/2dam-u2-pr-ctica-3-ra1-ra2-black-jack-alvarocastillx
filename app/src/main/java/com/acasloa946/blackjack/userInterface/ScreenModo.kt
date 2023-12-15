@@ -62,11 +62,25 @@ fun PantallaModo(NavController: NavController) {
             shape = RectangleShape,
             onClick = { NavController.navigate(Routes.Pantalla1vsIA.route) },
             modifier = Modifier
-                .size(height = 130.dp, width = 150.dp),
+                .size(height = 130.dp, width = 150.dp)
+                .padding(bottom = 30.dp),
             colors = ButtonDefaults.buttonColors(Color.Red)
         ) {
             Text(
                 text = "1 vs IA.",
+                textAlign = TextAlign.Center,
+                color = Color.Black
+            )
+        }
+        Button(
+            shape = RectangleShape,
+            onClick = { NavController.navigate(Routes.PantallaHC.route) },
+            modifier = Modifier
+                .size(height = 130.dp, width = 150.dp),
+            colors = ButtonDefaults.buttonColors(Color.Red)
+        ) {
+            Text(
+                text = "Highest card",
                 textAlign = TextAlign.Center,
                 color = Color.Black
             )
